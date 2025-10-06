@@ -8,6 +8,11 @@ const DEFAULT_METAMASK_PRIVATE_KEY =
 
 const METAMASK_SEED = process.env.METAMASK_SEED || DEFAULT_METAMASK_SEED;
 const METAMASK_PRIVATE_KEY = process.env.METAMASK_PRIVATE_KEY || DEFAULT_METAMASK_PRIVATE_KEY;
+const usingBundledSeed =
+  !process.env.METAMASK_SEED || process.env.METAMASK_SEED === DEFAULT_METAMASK_SEED;
+const usingBundledPrivateKey =
+  !process.env.METAMASK_PRIVATE_KEY ||
+  process.env.METAMASK_PRIVATE_KEY === DEFAULT_METAMASK_PRIVATE_KEY;
 const METAMASK_PASSWORD = process.env.METAMASK_PASSWORD || 'StrongPassword123!';
 const METAMASK_VERSION = process.env.METAMASK_VERSION || MetaMaskWallet.recommendedVersion;
 
@@ -45,7 +50,7 @@ export const test = base.extend<Fixtures>({
 
       await wallet.unlock();
 
-      if (METAMASK_PRIVATE_KEY) {
+      if (!(usingBundledSeed && usingBundledPrivateKey)) {
         await wallet.importPK(METAMASK_PRIVATE_KEY);
       }
       await use(context);

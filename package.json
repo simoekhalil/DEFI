@@ -8,7 +8,8 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "HEADLESS=false playwright test",
     "report": "playwright show-report",
-    "bundle:artifacts": "node scripts/bundle-artifacts.mjs"
+    "bundle:artifacts": "node scripts/bundle-artifacts.mjs",
+    "metamask:download": "node scripts/download-metamask.mjs"
   },
   "keywords": [],
   "author": "",

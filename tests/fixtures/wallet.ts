@@ -20,12 +20,17 @@ if (process.env.CI && (usingBundledSeed || usingBundledPrivateKey)) {
   const pkRawLength = process.env.METAMASK_PRIVATE_KEY?.length || 0;
   const pkTrimmedLength = pkEnvValue?.length || 0;
   const pkPreview = pkEnvValue ? `${pkEnvValue.substring(0, 10)}...` : 'undefined';
+  const defaultPreview = `${DEFAULT_METAMASK_PRIVATE_KEY.substring(0, 10)}...`;
+  const actualPkUsed = METAMASK_PRIVATE_KEY.substring(0, 10) + '...';
   throw new Error(
     `Refusing to run in CI with bundled MetaMask credentials.\n` +
-    `METAMASK_PRIVATE_KEY is ${pkEnvValue ? `set (raw length: ${pkRawLength}, trimmed: ${pkTrimmedLength}, preview: ${pkPreview})` : 'NOT set'}.\n` +
+    `METAMASK_PRIVATE_KEY env var is ${pkEnvValue ? `set (raw length: ${pkRawLength}, trimmed: ${pkTrimmedLength}, preview: ${pkPreview})` : 'NOT set'}.\n` +
     `Expected: 64 hex characters (private key without 0x prefix).\n` +
-    `Please verify METAMASK_PRIVATE_KEY is set correctly as a GitHub repository secret.\n` +
-    `Go to: Settings → Secrets and variables → Actions → New repository secret`
+    `METAMASK_PRIVATE_KEY constant value: ${actualPkUsed}\n` +
+    `DEFAULT_METAMASK_PRIVATE_KEY: ${defaultPreview}\n` +
+    `Using bundled seed: ${usingBundledSeed}, Using bundled private key: ${usingBundledPrivateKey}\n` +
+    `Match: ${METAMASK_PRIVATE_KEY === DEFAULT_METAMASK_PRIVATE_KEY}\n` +
+    `Please verify METAMASK_PRIVATE_KEY is set correctly as a GitHub repository secret.`
   );
 }
 

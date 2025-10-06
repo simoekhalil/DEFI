@@ -9,11 +9,10 @@ const DEFAULT_METAMASK_PRIVATE_KEY =
 // Trim environment variables to handle trailing newlines/spaces
 const METAMASK_SEED = process.env.METAMASK_SEED?.trim() || DEFAULT_METAMASK_SEED;
 const METAMASK_PRIVATE_KEY = process.env.METAMASK_PRIVATE_KEY?.trim() || DEFAULT_METAMASK_PRIVATE_KEY;
-const usingBundledSeed =
-  !process.env.METAMASK_SEED?.trim() || process.env.METAMASK_SEED?.trim() === DEFAULT_METAMASK_SEED;
-const usingBundledPrivateKey =
-  !process.env.METAMASK_PRIVATE_KEY?.trim() ||
-  process.env.METAMASK_PRIVATE_KEY?.trim() === DEFAULT_METAMASK_PRIVATE_KEY;
+
+// Check if we're using bundled (default) credentials
+const usingBundledSeed = METAMASK_SEED === DEFAULT_METAMASK_SEED;
+const usingBundledPrivateKey = METAMASK_PRIVATE_KEY === DEFAULT_METAMASK_PRIVATE_KEY;
 
 // Fail fast if you're (accidentally) using the bundled seed/key in CI
 if (process.env.CI && (usingBundledSeed || usingBundledPrivateKey)) {

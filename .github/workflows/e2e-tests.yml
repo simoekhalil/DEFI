@@ -35,6 +35,19 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Verify secrets are set
+        run: |
+          if [ -z "$METAMASK_PRIVATE_KEY" ]; then
+            echo "❌ ERROR: METAMASK_PRIVATE_KEY is not set!"
+            echo "Please add it as a repository secret:"
+            echo "Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          else
+            echo "✅ METAMASK_PRIVATE_KEY is set (length: ${#METAMASK_PRIVATE_KEY})"
+          fi
+        env:
+          METAMASK_PRIVATE_KEY: ${{ secrets.METAMASK_PRIVATE_KEY }}
+
       - name: Run E2E tests
         env:
           CI: true

@@ -16,7 +16,15 @@ const usingBundledPrivateKey =
 
 // Fail fast if you're (accidentally) using the bundled seed/key in CI
 if (process.env.CI && (usingBundledSeed || usingBundledPrivateKey)) {
-  throw new Error('Refusing to run in CI with bundled MetaMask seed/private key. Set METAMASK_SEED or METAMASK_PRIVATE_KEY secrets.');
+  const pkEnvValue = process.env.METAMASK_PRIVATE_KEY;
+  const pkLength = pkEnvValue ? pkEnvValue.length : 0;
+  const pkPreview = pkEnvValue ? `${pkEnvValue.substring(0, 10)}...` : 'undefined';
+  throw new Error(
+    `Refusing to run in CI with bundled MetaMask credentials.\n` +
+    `METAMASK_PRIVATE_KEY is ${pkLength ? `set (length: ${pkLength}, preview: ${pkPreview})` : 'NOT set'}.\n` +
+    `Please set METAMASK_PRIVATE_KEY as a GitHub repository secret.\n` +
+    `Go to: Settings → Secrets and variables → Actions → New repository secret`
+  );
 }
 
 const METAMASK_PASSWORD = process.env.METAMASK_PASSWORD || 'StrongPassword123!';

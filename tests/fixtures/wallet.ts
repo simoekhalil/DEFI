@@ -1,33 +1,34 @@
-import { test as base, expect, BrowserContext } from '@playwright/test';
+import { test as base, expect, BrowserContext, Page } from '@playwright/test';
 import dappwright, { Dappwright, MetaMaskWallet } from '@tenkeylabs/dappwright';
 import 'dotenv/config';
 
+const DEFAULT_METAMASK_SEED = 'test test test test test test test test test test test junk';
+const DEFAULT_METAMASK_PRIVATE_KEY =
+  '0x59c6995e998f97a5a0044975f5d4d0d4f716c7e21bffb0f9e3c8d8e1a1d1b1a9';
+
+const METAMASK_SEED = process.env.METAMASK_SEED || DEFAULT_METAMASK_SEED;
+const METAMASK_PRIVATE_KEY = process.env.METAMASK_PRIVATE_KEY || DEFAULT_METAMASK_PRIVATE_KEY;
+const METAMASK_PASSWORD = process.env.METAMASK_PASSWORD || 'StrongPassword123!';
+const METAMASK_VERSION = process.env.METAMASK_VERSION || MetaMaskWallet.recommendedVersion;
+
 type Fixtures = {
-  context: BrowserContext;
+  walletContext: BrowserContext;
   wallet: Dappwright;
+  page: Page;
 };
 
 export const test = base.extend<Fixtures>({
-  context: [
+  walletContext: [
     async ({}, use) => {
-      const seed = process.env.METAMASK_SEED;
-      const privateKey = process.env.METAMASK_PRIVATE_KEY;
-      const password = process.env.METAMASK_PASSWORD || 'StrongPassword123!';
-      const version = process.env.METAMASK_VERSION || MetaMaskWallet.recommendedVersion;
-
-      if (!seed && !privateKey) {
-        throw new Error('METAMASK_SEED or METAMASK_PRIVATE_KEY must be provided');
-      }
-
       const bootstrapOptions: Parameters<typeof dappwright.bootstrap>[1] = {
         wallet: 'metamask',
-        version,
-        password,
+        version: METAMASK_VERSION,
+        password: METAMASK_PASSWORD,
         headless: process.env.HEADLESS !== 'false',
       };
 
-      if (seed) {
-        bootstrapOptions.seed = seed;
+      if (METAMASK_SEED) {
+        bootstrapOptions.seed = METAMASK_SEED;
       }
 
       const [wallet, , context] = await dappwright.bootstrap('', bootstrapOptions);
@@ -44,8 +45,8 @@ export const test = base.extend<Fixtures>({
 
       await wallet.unlock();
 
-      if (privateKey) {
-        await wallet.importPK(privateKey);
+      if (METAMASK_PRIVATE_KEY) {
+        await wallet.importPK(METAMASK_PRIVATE_KEY);
       }
       await use(context);
       await context.close();
@@ -53,8 +54,14 @@ export const test = base.extend<Fixtures>({
     { scope: 'worker' },
   ],
 
-  wallet: async ({ context }, use) => {
-    const metamask = await dappwright.getWallet('metamask', context);
+  page: async ({ walletContext }, use) => {
+    const page = await walletContext.newPage();
+    await use(page);
+    await page.close();
+  },
+
+  wallet: async ({ walletContext }, use) => {
+    const metamask = await dappwright.getWallet('metamask', walletContext);
     await use(metamask);
   },
 });

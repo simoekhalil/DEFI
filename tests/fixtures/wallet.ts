@@ -6,23 +6,26 @@ const DEFAULT_METAMASK_SEED = 'test test test test test test test test test test
 const DEFAULT_METAMASK_PRIVATE_KEY =
   '0x59c6995e998f97a5a0044975f5d4d0d4f716c7e21bffb0f9e3c8d8e1a1d1b1a9';
 
-const METAMASK_SEED = process.env.METAMASK_SEED || DEFAULT_METAMASK_SEED;
-const METAMASK_PRIVATE_KEY = process.env.METAMASK_PRIVATE_KEY || DEFAULT_METAMASK_PRIVATE_KEY;
+// Trim environment variables to handle trailing newlines/spaces
+const METAMASK_SEED = process.env.METAMASK_SEED?.trim() || DEFAULT_METAMASK_SEED;
+const METAMASK_PRIVATE_KEY = process.env.METAMASK_PRIVATE_KEY?.trim() || DEFAULT_METAMASK_PRIVATE_KEY;
 const usingBundledSeed =
-  !process.env.METAMASK_SEED || process.env.METAMASK_SEED === DEFAULT_METAMASK_SEED;
+  !process.env.METAMASK_SEED?.trim() || process.env.METAMASK_SEED?.trim() === DEFAULT_METAMASK_SEED;
 const usingBundledPrivateKey =
-  !process.env.METAMASK_PRIVATE_KEY ||
-  process.env.METAMASK_PRIVATE_KEY === DEFAULT_METAMASK_PRIVATE_KEY;
+  !process.env.METAMASK_PRIVATE_KEY?.trim() ||
+  process.env.METAMASK_PRIVATE_KEY?.trim() === DEFAULT_METAMASK_PRIVATE_KEY;
 
 // Fail fast if you're (accidentally) using the bundled seed/key in CI
 if (process.env.CI && (usingBundledSeed || usingBundledPrivateKey)) {
-  const pkEnvValue = process.env.METAMASK_PRIVATE_KEY;
-  const pkLength = pkEnvValue ? pkEnvValue.length : 0;
+  const pkEnvValue = process.env.METAMASK_PRIVATE_KEY?.trim();
+  const pkRawLength = process.env.METAMASK_PRIVATE_KEY?.length || 0;
+  const pkTrimmedLength = pkEnvValue?.length || 0;
   const pkPreview = pkEnvValue ? `${pkEnvValue.substring(0, 10)}...` : 'undefined';
   throw new Error(
     `Refusing to run in CI with bundled MetaMask credentials.\n` +
-    `METAMASK_PRIVATE_KEY is ${pkLength ? `set (length: ${pkLength}, preview: ${pkPreview})` : 'NOT set'}.\n` +
-    `Please set METAMASK_PRIVATE_KEY as a GitHub repository secret.\n` +
+    `METAMASK_PRIVATE_KEY is ${pkEnvValue ? `set (raw length: ${pkRawLength}, trimmed: ${pkTrimmedLength}, preview: ${pkPreview})` : 'NOT set'}.\n` +
+    `Expected: 64 hex characters (private key without 0x prefix).\n` +
+    `Please verify METAMASK_PRIVATE_KEY is set correctly as a GitHub repository secret.\n` +
     `Go to: Settings → Secrets and variables → Actions → New repository secret`
   );
 }

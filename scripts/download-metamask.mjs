@@ -3,7 +3,7 @@ const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || process.env.G
 if (proxy) {
   process.env.GLOBAL_AGENT_HTTP_PROXY = proxy;
   // must import AFTER setting the env var so it patches correctly
-  await import('global-agent/bootstrap');
+  await import('global-agent/bootstrap.js');
   console.log(`[proxy] Using ${process.env.GLOBAL_AGENT_HTTP_PROXY} for outbound HTTP(S)`);
 }
 

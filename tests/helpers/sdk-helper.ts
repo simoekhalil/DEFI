@@ -107,8 +107,29 @@ export async function getGalaBalance() {
   const result = await sdk.fetchGalaBalance();
   const userAddress = await sdk.getAddress();
   
-  // Check if result is an object with balance property or a string
-  const balanceValue = typeof result === 'object' && result.balance ? result.balance : result;
+  // Handle different response formats from SDK
+  let balanceValue: string;
+  
+  if (typeof result === 'string') {
+    // Direct string response
+    balanceValue = result;
+  } else if (typeof result === 'object' && result !== null) {
+    // Object response - try multiple possible properties
+    if ('quantity' in result && result.quantity) {
+      balanceValue = result.quantity;
+    } else if ('balance' in result && result.balance) {
+      balanceValue = result.balance;
+    } else if (Array.isArray(result) && result.length > 0) {
+      // Array of balances - get the first one
+      balanceValue = result[0].quantity || result[0].balance || '0';
+    } else {
+      // Fallback: convert object to string for debugging
+      console.warn('[SDK] Unexpected balance format:', result);
+      balanceValue = '0';
+    }
+  } else {
+    balanceValue = '0';
+  }
   
   console.log(`[SDK] GALA Balance: ${balanceValue} GALA`);
   console.log(`[SDK] User Address: ${userAddress}`);

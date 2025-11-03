@@ -10,6 +10,9 @@
  * - Price calculations
  */
 
+// Load environment variables
+import 'dotenv/config';
+
 // ✅ Using official @gala-chain/launchpad-sdk v3.18.0
 import { createLaunchpadSDK } from '@gala-chain/launchpad-sdk';
 

@@ -27,11 +27,11 @@
   "dependencies": {
     "@gala-chain/api": "^2.4.3",
     "@gala-chain/connect": "^2.4.3",
+    "@gala-chain/launchpad-sdk": "^3.18.0",
     "axios": "^1.12.2",
     "bignumber.js": "^9.1.2",
     "ethers": "^6.15.0",
     "global-agent": "^3.0.0",
-    "launchpad-sdk-cjs": "gitlab:gala-games/gala-film/launchpad-sdk-cjs",
     "socket.io-client": "^4.8.1",
     "zod": "^3.25.76"
   }

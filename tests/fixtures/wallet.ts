@@ -46,7 +46,7 @@ type Fixtures = {
 export const test = base.extend<Fixtures>({
   walletContext: [
     async ({}, use) => {
-      console.log('[WALLET] Starting wallet context setup...');
+      console.log('\n[WALLET] ========== NEW WALLET CONTEXT SETUP ==========');
       console.log('[WALLET] Using bundled seed:', usingBundledSeed);
       console.log('[WALLET] Using bundled private key:', usingBundledPrivateKey);
       console.log('[WALLET] MetaMask version:', METAMASK_VERSION);
@@ -70,8 +70,20 @@ export const test = base.extend<Fixtures>({
       }
 
       console.log('[WALLET] Starting dappwright.bootstrap...');
-      const [wallet, , context] = await dappwright.bootstrap('', bootstrapOptions);
+      
+      // Add longer timeout for bootstrap to handle slow MetaMask initialization
+      const [wallet, , context] = await Promise.race([
+        dappwright.bootstrap('', bootstrapOptions),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Bootstrap timeout after 60 seconds')), 60000)
+        )
+      ]);
+      
       console.log('[WALLET] ✓ Bootstrap complete');
+      
+      // Add extra delay to let MetaMask fully initialize
+      console.log('[WALLET] Waiting for MetaMask to stabilize...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       // wallet.unlock() often hangs or is unnecessary after bootstrap
       // Try it with a timeout, but continue if it fails
@@ -89,40 +101,82 @@ export const test = base.extend<Fixtures>({
       // Import private key BEFORE adding/switching networks
       if (!(usingBundledSeed && usingBundledPrivateKey)) {
         console.log('[WALLET] Importing private key:', METAMASK_PRIVATE_KEY.substring(0, 10) + '...');
+        
+        // FIX: Wait for MetaMask loading overlay to disappear before importing private key
+        // MetaMask 12.x shows a loading overlay during initialization that blocks interactions
+        console.log('[WALLET] Waiting for MetaMask to finish loading...');
+        try {
+          const mmPage = wallet.page; // Get MetaMask extension page
+          const loadingOverlay = mmPage.locator('.mm-box.loading-overlay');
+          
+          // Wait for overlay to be hidden (with 45 second timeout - increased for reliability)
+          await loadingOverlay.waitFor({ state: 'hidden', timeout: 45000 });
+          console.log('[WALLET] ✓ MetaMask loading complete');
+        } catch (err) {
+          console.log('[WALLET] ⚠️ Loading overlay timeout or not found, attempting to force dismiss...');
+          
+          // Try to force-dismiss the overlay by injecting CSS
+          try {
+            await wallet.page.evaluate(() => {
+              const overlay = document.querySelector('.mm-box.loading-overlay');
+              if (overlay) {
+                (overlay as HTMLElement).style.display = 'none';
+                console.log('[WALLET] Force-dismissed overlay via CSS');
+              }
+            });
+          } catch (e) {
+            console.log('[WALLET] Could not force-dismiss overlay, continuing anyway');
+          }
+        }
+        
+        // Add extra delay to ensure MetaMask is fully ready
+        await wallet.page.waitForTimeout(3000); // Increased from 2s to 3s
+        
         await wallet.importPK(METAMASK_PRIVATE_KEY);
         console.log('[WALLET] ✓ Private key imported');
       }
 
-      // Ensure correct chain (idempotent if already added)
-      if (process.env.RPC_URL && process.env.CHAIN_ID && process.env.CHAIN_NAME) {
-        console.log('[WALLET] Adding custom network:', process.env.CHAIN_NAME);
-        await wallet.addNetwork({
-          networkName: process.env.CHAIN_NAME,
-          rpc: process.env.RPC_URL,
-          chainId: Number(process.env.CHAIN_ID),
-          symbol: process.env.CHAIN_SYMBOL || 'ETH',
-        });
-        console.log('[WALLET] ✓ Network added');
+      // Ensure correct chain
+      if (process.env.CHAIN_ID && process.env.CHAIN_NAME) {
+        const chainId = Number(process.env.CHAIN_ID);
         
-        console.log('[WALLET] Switching to network:', process.env.CHAIN_NAME);
-        await wallet.switchNetwork(process.env.CHAIN_NAME);
-        console.log('[WALLET] ✓ Network switched');
+        // Sepolia (11155111) is built-in to MetaMask, so just switch to it
+        if (chainId === 11155111) {
+          console.log('[WALLET] Switching to Sepolia (built-in network)...');
+          await wallet.switchNetwork('Sepolia');
+          console.log('[WALLET] ✓ Switched to Sepolia');
+        } else {
+          // For other networks, add them as custom networks
+          console.log('[WALLET] Adding custom network:', process.env.CHAIN_NAME);
+          await wallet.addNetwork({
+            networkName: process.env.CHAIN_NAME,
+            rpc: process.env.RPC_URL!,
+            chainId: chainId,
+            symbol: process.env.CHAIN_SYMBOL || 'ETH',
+          });
+          console.log('[WALLET] ✓ Network added');
+          
+          console.log('[WALLET] Switching to network:', process.env.CHAIN_NAME);
+          await wallet.switchNetwork(process.env.CHAIN_NAME);
+          console.log('[WALLET] ✓ Network switched');
+        }
       }
 
-      console.log('[WALLET] ✓ Wallet setup complete, passing context to test');
+      console.log('[WALLET] ✓ Wallet setup complete, passing context to test\n');
       await use(context);
       
-      console.log('[WALLET] Closing wallet context...');
+      console.log('\n[WALLET] Cleaning up wallet context...');
       await context.close();
       console.log('[WALLET] ✓ Context closed');
+      console.log('[WALLET] ========== WALLET CONTEXT CLEANUP COMPLETE ==========\n');
     },
-    { scope: 'worker' },
+    { scope: 'worker' }, // Worker scope - one wallet for all tests in the file
   ],
 
   page: async ({ walletContext }, use) => {
     const page = await walletContext.newPage();
     await use(page);
-    await page.close();
+    // Don't close the page - let the worker-scoped context handle all cleanup
   },
 
   wallet: async ({ walletContext }, use) => {

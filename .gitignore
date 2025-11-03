@@ -3,8 +3,45 @@ playwright-report/
 test-results/
 artifacts/
 .env
+.env.local
+.env.*.local
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Sensitive data and credentials
+created-tokens.json
+jira-tickets-created.json
+performance-jira-tickets.json
+*.mp4
+*.mov
+
+# Internal documentation (not needed for public)
+launch-*.txt
+*-JIRA-Attachments/
+JIRA-*.md
+LAUNCH-*-VERIFICATION-REPORT.md
+LAUNCH-*-SUMMARY.md
+LAUNCH-*-TEST-RESULTS.md
+MEETING-NOTES-*.md
+QUESTIONS-FOR-*.md
+*-STATUS.md
+*-PROGRESS.md
+SESSION-SUMMARY.md
+TICKET-*.md
+VISUAL-EVIDENCE-ANALYSIS.md
+
+# Test artifacts
+test-output.txt
+test-run-output.txt
+*.bat
+run-test*.js
+run-test*.ps1
+
+# Jira configuration (contains credentials)
+scripts/jira-config.mjs
+
+# Internal documentation
+README-INTERNAL.md

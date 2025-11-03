@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet';
-import { connectWallet } from './helpers/connect';
+import { ensureWalletConnected } from './helpers/connect';
 
 const BASE = process.env.BASE_URL || 'https://lpad-frontend-dev1.defi.gala.com';
 
@@ -11,8 +11,8 @@ test('My Profile shows balances after connecting wallet', async ({ page, wallet 
     await page.goto(`${BASE}`, { waitUntil: 'domcontentloaded' });
     console.log('[TEST] ✓ Homepage loaded');
     
-    console.log('[TEST] Connecting wallet...');
-    await connectWallet(page, wallet);
+    console.log('[TEST] Ensuring wallet is connected...');
+    await ensureWalletConnected(page, wallet);
     console.log('[TEST] ✓ Wallet connected');
   });
 
@@ -35,6 +35,11 @@ test('My Profile shows balances after connecting wallet', async ({ page, wallet 
 
   await test.step('capture and report balances', async () => {
     console.log('[TEST] Capturing balances from Assets List...');
+    
+    // Ensure the dapp page is in focus (not MetaMask)
+    await page.bringToFront();
+    await page.waitForTimeout(1000);
+    
     await expect(page.getByRole('heading', { name: /assets list/i })).toBeVisible();
     
     // Target only the Assets List content area

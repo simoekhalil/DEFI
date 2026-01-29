@@ -66,7 +66,11 @@
     "test:testnet:auto": "playwright test tests/testnet-auto-wallet.spec.ts --config=playwright-testnet.config.ts",
     "test:testnet": "playwright test --config=playwright-testnet.config.ts",
     "test:sdk": "playwright test tests/sdk-integration.spec.ts --timeout=60000",
-    "test:sdk:headed": "playwright test tests/sdk-integration.spec.ts --headed --timeout=60000"
+    "test:sdk:headed": "playwright test tests/sdk-integration.spec.ts --headed --timeout=60000",
+    "test:dex:incentive": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --timeout=90000",
+    "test:dex:incentive:headed": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --headed --timeout=90000",
+    "test:dex:incentive:api": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --project=dex-incentive-api",
+    "test:dex:incentive:ui": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --project=dex-incentive-ui --headed"
   },
   "dependencies": {
     "@gala-chain/launchpad-sdk": "^5.0.4-beta.18",

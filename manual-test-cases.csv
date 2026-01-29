@@ -1,0 +1,247 @@
+Test Description,Test Steps,Expected Results
+"Bonding Curve Price Calculation - 100K Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 100,000
+3. Calculate or view price","Price should be exactly 31.2750343 or within 1% tolerance"
+"Bonding Curve Price Calculation - 200K Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 200,000
+3. Calculate or view price","Price should be exactly 90.373179 or within 1% tolerance"
+"Bonding Curve Price Calculation - 300K Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 300,000
+3. Calculate or view price","Price should be exactly 322.1326362 or within 1% tolerance"
+"Bonding Curve Price Calculation - 400K Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 400,000
+3. Calculate or view price","Price should be exactly 933.837364 or within 1% tolerance"
+"Bonding Curve Price Calculation - 500K Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 500,000
+3. Calculate or view price","Price should be exactly 2317.347211 or within 1% tolerance"
+"Bonding Curve Price Calculation - 1M Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 1,000,000
+3. Calculate or view price","Price should be exactly 31741.65481 or within 1% tolerance"
+"Bonding Curve Price Calculation - 5M Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 5,000,000
+3. Calculate or view price","Price should be exactly 9348.46001 or within 1% tolerance"
+"Bonding Curve Price Calculation - 9M Supply","1. Navigate to bonding curve calculator or price display
+2. Input token supply: 9,000,000
+3. Calculate or view price","Price should be exactly 35586.8634 or within 1% tolerance"
+"Diamond Hand Fee - Early Sale (10%)","1. Navigate to Diamond Hand bonus section
+2. Set sale progress to 10%
+3. Calculate or view Diamond Hand fee","Fee should be 1.10% (increased from 1% base fee)"
+"Diamond Hand Fee - Mid Sale (50%)","1. Navigate to Diamond Hand bonus section
+2. Set sale progress to 50%
+3. Calculate or view Diamond Hand fee","Fee should be 3.50% (significantly increased from base)"
+"Diamond Hand Fee - Late Sale (90%)","1. Navigate to Diamond Hand bonus section
+2. Set sale progress to 90%
+3. Calculate or view Diamond Hand fee","Fee should be 9.10% (maximum fee structure)"
+"Token Distribution to Holders","1. Set up test scenario with 3 holders: 1000, 2000, 3000 balance
+2. Set total tokens to distribute: 600
+3. Calculate distribution","Distribution should be: 100 tokens (16.7%), 200 tokens (33.3%), 300 tokens (50.0%)"
+"Creator Incentive - Small Pool ($100K)","1. Navigate to creator incentive section
+2. Set liquidity pool value to $100,000
+3. Calculate creator incentive","Creator should receive $2,000 (exactly 2% of pool value)"
+"Creator Incentive - Medium Pool ($500K)","1. Navigate to creator incentive section
+2. Set liquidity pool value to $500,000
+3. Calculate creator incentive","Creator should receive $10,000 (exactly 2% of pool value)"
+"Creator Incentive - Large Pool ($2M)","1. Navigate to creator incentive section
+2. Set liquidity pool value to $2,000,000
+3. Calculate creator incentive","Creator should receive $40,000 (exactly 2% of pool value)"
+"Token Graduation - Standardized Supply","1. Navigate to token graduation section
+2. Check graduation requirements
+3. Verify standardized supply setting","All graduated tokens should have 1 billion (1,000,000,000) standardized supply"
+"Token Graduation - Fixed Starting Price","1. Navigate to token graduation section
+2. Check price standardization
+3. Verify starting price mechanism","All graduated tokens should have the same fixed starting price mechanism"
+"Dump Event Detection - Small Drop (3%)","1. Simulate or input price change of -3%
+2. Set threshold to 5%
+3. Check if dump protection triggers","Dump protection should NOT trigger (3% < 5% threshold)"
+"Dump Event Detection - Medium Drop (8%)","1. Simulate or input price change of -8%
+2. Set threshold to 5%
+3. Check if dump protection triggers","Dump protection SHOULD trigger (8% > 5% threshold)"
+"Dump Event Detection - Large Drop (20%)","1. Simulate or input price change of -20%
+2. Set threshold to 10%
+3. Check if dump protection triggers","Dump protection SHOULD trigger (20% > 10% threshold)"
+"Dump Event Detection - Price Increase (5%)","1. Simulate or input price change of +5%
+2. Set threshold to 5%
+3. Check if dump protection triggers","Dump protection should NOT trigger (positive price change)"
+"Token Name Validation - Valid Name","1. Navigate to token creation form
+2. Enter token name: 'TestToken'
+3. Submit or validate","Validation should pass - name is 2-25 characters and alphanumeric"
+"Token Name Validation - Too Short","1. Navigate to token creation form
+2. Enter token name: 'A'
+3. Submit or validate","Validation should fail with error: 'Name must be at least 2 characters'"
+"Token Name Validation - Contains Space","1. Navigate to token creation form
+2. Enter token name: 'Test Token'
+3. Submit or validate","Validation should fail with error: 'Name must be alphanumeric only'"
+"Token Symbol Validation - Valid Symbol","1. Navigate to token creation form
+2. Enter token symbol: 'TEST'
+3. Submit or validate","Validation should pass - symbol is 1-8 characters and alphabets only"
+"Token Symbol Validation - Contains Numbers","1. Navigate to token creation form
+2. Enter token symbol: 'TEST123'
+3. Submit or validate","Validation should fail with error: 'Symbol must be alphabets only'"
+"Token Description Validation - Valid Description","1. Navigate to token creation form
+2. Enter description: 'This is a valid description'
+3. Submit or validate","Validation should pass - description is 2-250 characters"
+"Fast Launch Page Navigation","1. Open browser and navigate to https://lpad-frontend-dev1.defi.gala.com
+2. Look for launch page or 'LAUNCH A COIN' button
+3. Click to access launch functionality","Should successfully navigate to token launch page within 5 seconds"
+"Launch Form Element Detection","1. Navigate to launch page
+2. Inspect form elements
+3. Verify all required fields are present","Should find token name, symbol, description fields and form submission button"
+"Launch Form Field Interaction","1. Navigate to launch page
+2. Click on each form field
+3. Enter test data in each field","All form fields should be clickable and accept input without errors"
+"Gala DeFi Page Content Reading","1. Navigate to https://lpad-frontend-dev1.defi.gala.com
+2. Read page content
+3. Analyze for Web3/DeFi content","Should detect Web3, DeFi, or blockchain-related content on the page"
+"Wallet Connection Element Detection","1. Navigate to main page
+2. Look for wallet connection button or option
+3. Verify wallet integration elements","Should find 'Connect Wallet' button or similar wallet integration UI"
+"Button and Link Enumeration","1. Navigate to main page
+2. Count all clickable buttons and links
+3. Test basic functionality of key buttons","Should find multiple interactive elements, all buttons should be clickable"
+"LAUNCH A COIN Button Detection","1. Navigate to main page
+2. Look specifically for 'LAUNCH A COIN' button
+3. Click the button","Should find the button and clicking should navigate to launch form"
+"Form Field Detection and Filling","1. Navigate to launch form
+2. Detect all form fields
+3. Fill each field with valid test data","Should successfully detect and fill: token name, symbol, description fields"
+"Navigation Flow Validation","1. Start from main page
+2. Navigate through launch process
+3. Verify each step loads correctly","Each navigation step should complete within 3 seconds without errors"
+"React Component Loading","1. Navigate to any page
+2. Wait for React components to initialize
+3. Check for interactive elements","React components should load and become interactive within 5 seconds"
+"Interactive Element Counting","1. Navigate to main page
+2. Wait for full page load
+3. Count all interactive elements (buttons, links, inputs)","Should find at least 5 interactive elements on the main page"
+"Direct Navigation Testing","1. Navigate directly to /launch URL
+2. Verify page loads correctly
+3. Check for form availability","Launch page should load directly without requiring navigation from main page"
+"Page Analysis After React Load","1. Navigate to any page
+2. Wait for React to fully load
+3. Analyze page structure and content","Page should have proper structure with header, main content, and interactive elements"
+"JavaScript Loading Status Detection","1. Navigate to any page
+2. Check browser console for JavaScript errors
+3. Verify all scripts load successfully","No JavaScript errors should appear, all scripts should load without issues"
+"DOM Content Loading Verification","1. Navigate to any page
+2. Wait for DOMContentLoaded event
+3. Verify all elements are accessible","All DOM elements should be accessible and properly rendered"
+"Network Idle State Detection","1. Navigate to any page
+2. Wait for all network requests to complete
+3. Verify page is fully loaded","Network should reach idle state within 10 seconds of navigation"
+"Screenshot Capture Functionality","1. Navigate to any page
+2. Attempt to capture screenshot
+3. Verify screenshot quality","Screenshot should capture full page content clearly"
+"Basic Functionality Verification","1. Navigate to main page
+2. Test basic page interactions
+3. Verify core functionality works","Basic page functions (navigation, clicking, form interaction) should work"
+"Image Upload Field Visibility","1. Navigate to launch form
+2. Look for image upload field
+3. Verify field is visible and accessible","Image upload field should be visible (currently failing - field is hidden)"
+"Image Format Validation","1. Navigate to launch form
+2. Check image upload field accept attribute
+3. Verify accepted file formats","Should accept .jpg, .jpeg, .png formats (currently shows generic image/*)"
+"Complete Launch Flow","1. Navigate to launch form
+2. Fill all required fields with valid data
+3. Submit form and check URL change","After submission, URL should change to include 'token' or 'detail' (currently failing)"
+"Wallet Connection UI","1. Navigate to main page
+2. Look for 'Connect Wallet' button
+3. Click the button","Should display wallet connection modal or options"
+"Gala Wallet Option Availability","1. Click Connect Wallet button
+2. Look for Gala wallet option
+3. Verify Gala wallet is supported","Gala wallet should appear as a connection option"
+"Address Format Validation - Gala Client ID","1. Test with address: client|618ae395c1c653111d3315be
+2. Check if system accepts this format
+3. Verify address validation","System should accept and properly handle Gala client ID format"
+"Gala Ecosystem Integration","1. Navigate through the site
+2. Look for Gala branding and references
+3. Check for GALA token integration","Should find Gala-specific branding, GALA token references, or Galachain integration"
+"Token Launch with Wallet Context","1. Connect wallet (or simulate connection)
+2. Navigate to launch form
+3. Attempt to create token","Form should work properly when wallet is connected"
+"Web3 Provider Detection","1. Check browser console
+2. Look for Web3 provider detection
+3. Verify Gala wallet provider support","Should detect and support Gala wallet Web3 provider"
+"Page Load Performance","1. Navigate to any page
+2. Measure load time
+3. Verify performance meets standards","Page should load completely within 2 seconds"
+"Form Validation Error Messages","1. Enter invalid data in form fields
+2. Submit form or trigger validation
+3. Check error message quality","Error messages should be clear, helpful, and appear immediately"
+"Cross-Browser Compatibility","1. Test in Chrome browser
+2. Verify all functionality works
+3. Check for browser-specific issues","All features should work properly in Chromium-based browsers"
+"Mobile Viewport Compatibility","1. Resize browser to mobile viewport (375x667)
+2. Test navigation and form interaction
+3. Verify responsive design","Site should be usable on mobile viewport sizes"
+"Network Resilience Testing","1. Simulate slow network connection
+2. Test page loading and functionality
+3. Verify graceful handling","Site should handle slow connections gracefully with loading indicators"
+"Graduation Threshold - Market Cap Trigger","1. Navigate to token with bonding curve near graduation
+2. Monitor market cap value
+3. Check if graduation triggers at 1,640,985.84 GALA","Graduation should trigger exactly when market cap reaches 1,640,985.84 GALA (24.6k USD)"
+"Graduation Threshold - Exact Boundary Testing","1. Set token market cap to 1,640,985.83 GALA (just below threshold)
+2. Verify graduation does not trigger
+3. Increase to 1,640,985.84 GALA and verify graduation triggers","Should NOT graduate at 1,640,985.83 but SHOULD graduate at 1,640,985.84"
+"Creator Reward Distribution - Amount Verification","1. Trigger graduation event for a token
+2. Check creator wallet balance before and after
+3. Verify reward amount","Creator should receive exactly 17,777 GALA tokens (approximately 1% of graduation pool)"
+"Creator Reward Distribution - Wallet Transfer","1. Set creator wallet address in token configuration
+2. Trigger graduation event
+3. Check that reward is sent to correct wallet","17,777 GALA should be transferred to the creator's configured wallet address"
+"Creator Reward Distribution - Timing Verification","1. Monitor graduation event trigger
+2. Check timestamp of reward distribution
+3. Verify immediate transfer","Reward should be transferred immediately upon graduation event confirmation (within 1 block)"
+"Platform Fee Calculation - 5% Fee Verification","1. Calculate total graduation pool value
+2. Trigger graduation event
+3. Verify platform fee deduction","Platform should retain exactly 5% of the graduation pool as fees"
+"Platform Fee Calculation - Fee Amount Accuracy","1. With graduation pool of 1,640,985.84 GALA
+2. Calculate expected platform fee: 82,049.29 GALA (5%)
+3. Verify actual fee matches calculation","Platform fee should be exactly 82,049.29 GALA (5% of 1,640,985.84)"
+"DEX Pool Allocation - 94% Pool Verification","1. Calculate total graduation pool value
+2. Subtract creator reward (17,777 GALA) and platform fee (5%)
+3. Verify remaining 94% goes to DEX pool","DEX pool should receive exactly 94% of graduation funds for liquidity"
+"DEX Pool Allocation - Amount Calculation","1. From graduation pool of 1,640,985.84 GALA
+2. Subtract creator reward (17,777) and platform fee (82,049.29)
+3. Verify DEX pool gets 1,541,159.55 GALA","DEX pool should receive exactly 1,541,159.55 GALA (94% minus creator reward)"
+"DEX Pool Creation - Liquidity Pool Setup","1. Trigger graduation event
+2. Monitor DEX for new pool creation
+3. Verify pool is created with correct liquidity","New DEX trading pair should be created with 94% of graduation funds as initial liquidity"
+"Graduation Event Confirmation - Event Logging","1. Trigger graduation event
+2. Check system logs or event history
+3. Verify graduation event is properly recorded","Graduation event should be logged with timestamp, amounts, and recipient addresses"
+"Graduation Condition - Bonding Curve Completion","1. Monitor token approaching graduation threshold
+2. Verify bonding curve is properly completed
+3. Check transition from bonding curve to DEX trading","Token should transition from bonding curve pricing to DEX market pricing"
+"Creator Reward - Percentage Validation","1. Calculate creator reward as percentage of total pool
+2. Verify 17,777 GALA represents ~1% of 1,640,985.84 GALA
+3. Confirm percentage accuracy","Creator reward should be approximately 1.08% of total graduation pool"
+"Multi-Token Graduation - Simultaneous Events","1. Set up multiple tokens near graduation threshold
+2. Trigger graduation for multiple tokens simultaneously
+3. Verify each receives correct rewards","Each token graduation should process independently with correct reward amounts"
+"Graduation Threshold - USD Value Verification","1. Check current GALA to USD conversion rate
+2. Verify 1,640,985.84 GALA equals approximately 24.6k USD
+3. Confirm USD threshold accuracy","Graduation threshold should maintain approximately $24,600 USD value"
+"Creator Reward - Wallet Configuration Validation","1. Verify creator has configured valid wallet address
+2. Check wallet address format and validation
+3. Confirm address can receive GALA tokens","Creator wallet must be properly configured and capable of receiving GALA"
+"Platform Fee - Fee Collection Verification","1. Monitor platform fee wallet during graduation
+2. Verify 5% fee is collected to correct address
+3. Check fee accumulation over multiple graduations","Platform fees should accumulate correctly in designated fee collection wallet"
+"DEX Pool - Trading Activation","1. After graduation and pool creation
+2. Attempt to trade graduated token on DEX
+3. Verify trading is active and functional","Graduated token should be immediately tradeable on DEX with proper liquidity"
+"Graduation Rollback - Failed Event Handling","1. Simulate graduation event failure (network issue, etc.)
+2. Verify no partial rewards are distributed
+3. Check system state remains consistent","If graduation fails, no rewards should be distributed and system should remain in pre-graduation state"
+"Creator Reward - Tax/Reporting Implications","1. Document creator reward distribution
+2. Verify reward is properly categorized for tax purposes
+3. Check if reporting requirements are met","Creator reward should be properly documented for tax and regulatory compliance"
+"Graduation Analytics - Success Metrics","1. Track graduation events over time
+2. Monitor creator reward distributions
+3. Analyze graduation success rates","System should maintain analytics on graduation events, rewards, and success rates"
+"Configurable Parameters - Admin Access Only","1. Attempt to modify graduation threshold as regular user
+2. Attempt to change creator reward amount
+3. Verify only admin can modify these parameters","Regular users should NOT be able to modify graduation threshold, creator reward, or platform fee"
+"Graduation Threshold - Market Cap Calculation Accuracy","1. Monitor real-time market cap calculation
+2. Compare against manual calculation
+3. Verify accuracy of automated threshold detection","Market cap calculation should be accurate and update in real-time for threshold detection"

@@ -1,0 +1,6 @@
+---
+description:Goals of the project
+globs:
+alwaysApply: true
+---
+This is a test suit designed to navigate https://lpad-frontend-dev1.defi.gala.com/ using playwright. The goal is full automation that requires no manual user intervention. 

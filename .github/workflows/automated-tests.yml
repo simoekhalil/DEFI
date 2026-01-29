@@ -1,0 +1,133 @@
+name: Gala Launchpad Automated Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run automated wallet connection tests
+      run: npm run test:automated
+      env:
+        CI: true
+        NODE_ENV: test
+        WALLET_MODE: automated
+        TEST_WALLET_ADDRESS: client|618ae395c1c653111d3315be
+
+    - name: Run CI test suite
+      run: npm run ci:test
+      env:
+        CI: true
+        NODE_ENV: test
+        WALLET_MODE: automated
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.node-version }}
+        path: |
+          playwright-report-ci/
+          test-results/
+        retention-days: 30
+
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-screenshots-${{ matrix.node-version }}
+        path: tests/screenshots/
+        retention-days: 7
+
+  smoke-tests:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run smoke tests
+      run: npm run test:ci:smoke
+      env:
+        CI: true
+        NODE_ENV: test
+
+  mathematical-validation:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run mathematical validation tests
+      run: npx playwright test --config=playwright-ci.config.ts --project=mathematical-validation
+      env:
+        CI: true
+        NODE_ENV: test
+
+    - name: Upload mathematical test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mathematical-validation-results
+        path: test-results/
+        retention-days: 30
+
+
+
+
+

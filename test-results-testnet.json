@@ -1,0 +1,250 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\Simone\\web3-testing-app\\playwright-testnet.config.ts",
+    "rootDir": "C:/Users/Simone/web3-testing-app/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report-testnet"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results-testnet.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/Simone/web3-testing-app/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "testnet-chromium",
+        "name": "testnet-chromium",
+        "testDir": "C:/Users/Simone/web3-testing-app/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "automated-token-buying.spec.ts",
+      "file": "automated-token-buying.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Automated Token Buying and Trading",
+          "file": "automated-token-buying.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should connect wallet and demonstrate token buying capabilities",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "testnet-chromium",
+                  "projectName": "testnet-chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "interrupted",
+                      "duration": 3088,
+                      "error": {
+                        "message": "Error: page.waitForLoadState: Test ended.",
+                        "stack": "Error: page.waitForLoadState: Test ended.\n    at C:\\Users\\Simone\\web3-testing-app\\tests\\automated-token-buying.spec.ts:46:16",
+                        "location": {
+                          "file": "C:\\Users\\Simone\\web3-testing-app\\tests\\automated-token-buying.spec.ts",
+                          "column": 16,
+                          "line": 46
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 44 |\u001b[39m     \u001b[90m// Navigate to the site\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 46 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 47 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m2000\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 48 |\u001b[39m     \n \u001b[90m 49 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'📝 PHASE 1: WALLET CONNECTION WITH TRADING CAPABILITIES'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Simone\\web3-testing-app\\tests\\automated-token-buying.spec.ts",
+                            "column": 16,
+                            "line": 46
+                          },
+                          "message": "Error: page.waitForLoadState: Test ended.\n\n\u001b[0m \u001b[90m 44 |\u001b[39m     \u001b[90m// Navigate to the site\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 46 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 47 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m2000\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 48 |\u001b[39m     \n \u001b[90m 49 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'📝 PHASE 1: WALLET CONNECTION WITH TRADING CAPABILITIES'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\Simone\\web3-testing-app\\tests\\automated-token-buying.spec.ts:46:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "💰 AUTOMATED TOKEN BUYING TEST\n"
+                        },
+                        {
+                          "text": "============================================================\n"
+                        },
+                        {
+                          "text": "This test will demonstrate:\n"
+                        },
+                        {
+                          "text": "1. Automated wallet connection with balance\n"
+                        },
+                        {
+                          "text": "2. Token buying functionality\n"
+                        },
+                        {
+                          "text": "3. Token selling functionality\n"
+                        },
+                        {
+                          "text": "4. Balance checking\n"
+                        },
+                        {
+                          "text": "5. Transaction history tracking\n"
+                        },
+                        {
+                          "text": "============================================================\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-03T20:44:21.558Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Simone\\web3-testing-app\\test-results\\automated-token-buying-Aut-4e387-e-token-buying-capabilities-testnet-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Simone\\web3-testing-app\\test-results\\automated-token-buying-Aut-4e387-e-token-buying-capabilities-testnet-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Simone\\web3-testing-app\\tests\\automated-token-buying.spec.ts",
+                        "column": 16,
+                        "line": 46
+                      }
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ea9a189354a07a96c047-553a9ca512a42f1923d6",
+              "file": "automated-token-buying.spec.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "should execute automated trading sequence",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "testnet-chromium",
+                  "projectName": "testnet-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ea9a189354a07a96c047-995d3974bbf94817e65d",
+              "file": "automated-token-buying.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "should handle wallet transaction errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "testnet-chromium",
+                  "projectName": "testnet-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ea9a189354a07a96c047-9d69c5064c363266371e",
+              "file": "automated-token-buying.spec.ts",
+              "line": 228,
+              "column": 7
+            },
+            {
+              "title": "should demonstrate wallet capabilities for token graduation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "testnet-chromium",
+                  "projectName": "testnet-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ea9a189354a07a96c047-3fdf3c567733e6f4d97b",
+              "file": "automated-token-buying.spec.ts",
+              "line": 262,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-03T20:44:20.541Z",
+    "duration": 5190.324,
+    "expected": 0,
+    "skipped": 4,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

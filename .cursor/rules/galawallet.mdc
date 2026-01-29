@@ -1,0 +1,6 @@
+---
+description:use testnet metamask
+globs:
+alwaysApply: true
+---
+ use metamask for testing

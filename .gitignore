@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables - CRITICAL: Contains private keys
+.env
+.env.local
+.env.*.local
+
+# Wallet Extensions - Contains wallet extension files
+extensions/
+*.zip
+
+# Test results
+test-results/
+playwright-report/
+playwright-report-gala-launchpad/
+test-results-gala-launchpad/
+test-results.json
+test-results-new.json
+test-results-fixed.json
+test-result-gw-44.json/
+test-results-summary.json/
+
+# Screenshots
+tests/screenshots/*.png
+
+# Build outputs
+dist/
+build/
+*.log
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Playwright
+playwright/.cache/
+.playwright/
+
+# Temporary files
+*.tmp
+*.temp
+

@@ -1,0 +1,6 @@
+---
+description:Never Simulate tests 
+globs:
+alwaysApply: true
+---
+Never Simulate test always run on a live url https://lpad-frontend-dev1.defi.gala.com/ 

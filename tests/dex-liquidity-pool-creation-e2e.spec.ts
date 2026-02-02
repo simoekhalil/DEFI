@@ -24,10 +24,13 @@ dotenv.config();
  * - Live URL: https://lpad-frontend-dev1.defi.gala.com/
  */
 
-// Test configuration
+// Test configuration - Updated for GalaSwap DEX on Test1
 const TEST_CONFIG = {
-  baseUrl: 'https://lpad-frontend-dev1.defi.gala.com',
-  dexUrl: 'https://lpad-frontend-dev1.defi.gala.com/swap', // DEX swap/pool page
+  // GalaSwap DEX URLs (not launchpad)
+  baseUrl: 'https://dex-frontend-test1.defi.gala.com',
+  dexUrl: 'https://dex-frontend-test1.defi.gala.com', 
+  poolUrl: 'https://dex-frontend-test1.defi.gala.com/dex/pool', // Pool management page
+  swapUrl: 'https://dex-frontend-test1.defi.gala.com/GUSDC/GALA', // Swap page
   
   // Pool creation parameters
   pool: {
@@ -253,6 +256,8 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
         'a[href*="pool"]',
         'a[href*="liquidity"]',
         'nav >> text=/pool/i',
+        'a:has-text("Pool")',  // GalaSwap nav link
+        'a[href="/dex/pool"]',
         'button:has-text("Pools")',
         'a:has-text("Pools")',
         'text=/Add Liquidity/i',
@@ -275,13 +280,13 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       }
       
       if (!foundPoolsNav) {
-        // Try direct URL navigation
+        // Try direct URL navigation to GalaSwap DEX pool page
         console.log('   Trying direct URL navigation...');
-        await page.goto(`${TEST_CONFIG.baseUrl}/pools`, { timeout: 15000 }).catch(() => {});
+        await page.goto(TEST_CONFIG.poolUrl, { timeout: 15000 }).catch(() => {});
         await page.waitForTimeout(2000);
         
         if (!page.url().includes('pool')) {
-          await page.goto(`${TEST_CONFIG.baseUrl}/swap`, { timeout: 15000 }).catch(() => {});
+          await page.goto(TEST_CONFIG.swapUrl, { timeout: 15000 }).catch(() => {});
           await page.waitForTimeout(2000);
         }
       }
@@ -295,14 +300,23 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       // ===== STEP 5: Open Create Pool / Add Liquidity Form =====
       console.log('\n📍 STEP 5: Opening pool creation form...');
       
+      // GalaSwap DEX pool creation selectors
       const createPoolSelectors = [
         'button:has-text("Create Pool")',
         'button:has-text("New Pool")',
         'button:has-text("Add Liquidity")',
         'button:has-text("+ New Position")',
+        'button:has-text("New Position")',
         'a:has-text("Create Pool")',
+        'a:has-text("Add Liquidity")',
+        'a:has-text("New Position")',
         '[data-testid*="create-pool"]',
         '[data-testid*="add-liquidity"]',
+        '[data-testid*="new-position"]',
+        // GalaSwap specific
+        'button:has-text("+")',
+        '[class*="add-position"]',
+        '[class*="create-pool"]',
       ];
       
       let formOpened = false;
@@ -500,12 +514,15 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       console.log('\n📍 STEP 10: Submitting pool creation transaction...');
       console.log('⚠️  THIS WILL SUBMIT A REAL TRANSACTION');
       
+      // GalaSwap DEX submit selectors
       const submitSelectors = [
         'button:has-text("Create Pool")',
         'button:has-text("Add Liquidity")',
+        'button:has-text("Add")',
         'button:has-text("Supply")',
         'button:has-text("Confirm")',
         'button:has-text("Preview")',
+        'button:has-text("Submit")',
         '[data-testid*="submit"]',
         'button[type="submit"]',
       ];
@@ -764,7 +781,7 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
     
     // Initialize wallet if not already done
     if (!wallet) {
-      const metamaskVersion = process.env.METAMASK_VERSION || '10.25.0';
+      const metamaskVersion = process.env.METAMASK_VERSION || '13.13.1';
       const [walletInstance, _, browserContext] = await bootstrap('', {
         wallet: 'metamask',
         version: metamaskVersion,
@@ -782,8 +799,8 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
     
     console.log('📍 Step 1: Navigate to pools list...');
     
-    // Navigate to pools
-    await page.goto(`${TEST_CONFIG.baseUrl}/pools`).catch(() => {});
+    // Navigate to pools on GalaSwap DEX
+    await page.goto(TEST_CONFIG.poolUrl).catch(() => {});
     await page.waitForTimeout(3000);
     
     await page.screenshot({ 

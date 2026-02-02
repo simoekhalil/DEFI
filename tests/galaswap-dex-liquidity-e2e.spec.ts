@@ -156,7 +156,7 @@ test.describe('GalaSwap DEX Liquidity - E2E with Real Transactions', () => {
       
       // Bootstrap with retry for different versions
       let bootstrapSuccess = false;
-      const versionsToTry = [metamaskVersion, '11.9.1', '11.0.0', '10.25.0'];
+      const versionsToTry = [metamaskVersion, '13.13.1', '11.9.1', '11.0.0'];
       
       for (const version of versionsToTry) {
         try {
@@ -884,7 +884,7 @@ test.describe('GalaSwap DEX Liquidity - E2E with Real Transactions', () => {
         }
       }
       
-      const versionsToTry = [metamaskVersion, '11.9.1', '11.0.0', '10.25.0'];
+      const versionsToTry = [metamaskVersion, '13.13.1', '11.9.1', '11.0.0'];
       
       for (const version of versionsToTry) {
         try {

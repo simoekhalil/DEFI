@@ -152,13 +152,31 @@ async function dismissPrivacyModal(page: Page) {
 async function handleMetaMaskTransaction(wallet: any, popup: Page | null) {
   console.log('   Attempting MetaMask transaction approval...');
   
-  // Method 1: Use Dappwright's confirmTransaction
+  // Method 1: Use Dappwright's confirmTransaction (for standard EVM transactions)
   try {
-    await wallet.confirmTransaction();
+    await wallet.confirmTransaction({ timeout: 10000 });
     console.log('   ✅ Transaction confirmed via Dappwright');
     return true;
   } catch (e: any) {
     console.log(`   Dappwright confirmTransaction: ${e.message?.substring(0, 50)}`);
+  }
+  
+  // Method 2: Try sign() - GalaChain uses message signing!
+  try {
+    await wallet.sign();
+    console.log('   ✅ Message signed via Dappwright (GalaChain)');
+    return true;
+  } catch (e: any) {
+    console.log(`   Dappwright sign: ${e.message?.substring(0, 50)}`);
+  }
+  
+  // Method 3: Try approve() as fallback
+  try {
+    await wallet.approve();
+    console.log('   ✅ Approved via Dappwright');
+    return true;
+  } catch (e: any) {
+    console.log(`   Dappwright approve: ${e.message?.substring(0, 50)}`);
   }
   
   // Method 2: If we have a popup page, try interacting with it directly
@@ -720,14 +738,53 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
     
     await page.screenshot({ path: 'tests/screenshots/ui-liquidity-5-submitted.png', fullPage: true });
     
-    // NOTE: GalaChain transactions DON'T use MetaMask for signing!
-    // MetaMask only provides wallet address authorization.
-    // Actual transaction signing happens via GalaChain's bundler service.
-    console.log('\n📍 STEP 8: Wait for GalaChain transaction processing');
-    console.log('   ℹ️ GalaChain uses bundler signing, not MetaMask TX popups');
+    // STEP 8: Handle MetaMask signing (GalaChain uses message signing, not standard TX)
+    console.log('\n📍 STEP 8: Handle MetaMask signing');
+    console.log('   GalaChain uses message signing via MetaMask');
+    
+    // Try all Dappwright methods in order of preference
+    let signed = false;
+    
+    // Method 1: Try sign() - this is what GalaChain uses
+    try {
+      console.log('   Trying wallet.sign()...');
+      await wallet.sign();
+      console.log('   ✅ Signed via Dappwright!');
+      signed = true;
+    } catch (e: any) {
+      console.log(`   sign() failed: ${e.message?.substring(0, 50)}`);
+    }
+    
+    // Method 2: Try confirmTransaction as fallback
+    if (!signed) {
+      try {
+        console.log('   Trying wallet.confirmTransaction()...');
+        await wallet.confirmTransaction({ timeout: 10000 });
+        console.log('   ✅ Transaction confirmed via Dappwright!');
+        signed = true;
+      } catch (e: any) {
+        console.log(`   confirmTransaction() failed: ${e.message?.substring(0, 50)}`);
+      }
+    }
+    
+    // Method 3: Try approve as last resort
+    if (!signed) {
+      try {
+        console.log('   Trying wallet.approve()...');
+        await wallet.approve();
+        console.log('   ✅ Approved via Dappwright!');
+        signed = true;
+      } catch (e: any) {
+        console.log(`   approve() failed: ${e.message?.substring(0, 50)}`);
+      }
+    }
+    
+    if (!signed) {
+      console.log('   ⚠️ Could not sign/approve transaction');
+    }
     
     // Wait for transaction to process through GalaChain
-    await page.waitForTimeout(10000); // Give GalaChain time to process
+    await page.waitForTimeout(10000);
     
     // Look for transaction status indicators in UI
     const statusSelectors = [
@@ -749,16 +806,49 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
       } catch (e) { /* continue */ }
     }
     
-    // Check result
+    // Check result - wait for transaction to complete
     console.log('\n📍 STEP 9: Check result');
     await page.bringToFront();
-    await page.waitForTimeout(5000);
+    
+    // Take intermediate screenshot
+    await page.screenshot({ path: 'tests/screenshots/ui-liquidity-5-processing.png', fullPage: true });
+    
+    // Wait for "Transaction in progress" or similar to complete (up to 60 seconds)
+    console.log('   Waiting for transaction to complete...');
+    
+    for (let i = 0; i < 12; i++) { // 12 x 5s = 60s max wait
+      await page.waitForTimeout(5000);
+      
+      const status = await page.evaluate(() => {
+        const text = document.body.innerText;
+        return {
+          inProgress: /transaction in progress|processing|pending|confirming/i.test(text),
+          success: /success|confirmed|complete|added|created/i.test(text),
+          error: /error|failed|rejected|insufficient/i.test(text),
+        };
+      });
+      
+      console.log(`   Check ${i + 1}: inProgress=${status.inProgress}, success=${status.success}, error=${status.error}`);
+      
+      if (status.success) {
+        console.log('   🎉 TRANSACTION SUCCESSFUL!');
+        break;
+      } else if (status.error) {
+        console.log('   ❌ Transaction failed');
+        break;
+      } else if (!status.inProgress && i > 0) {
+        // Modal closed without clear status
+        console.log('   Modal closed, checking final state...');
+        break;
+      }
+    }
     
     const pageContent = await page.evaluate(() => {
       const text = document.body.innerText;
       return {
-        hasSuccess: /success|confirmed|added|created/i.test(text),
+        hasSuccess: /success|confirmed|added|created|liquidity.*added/i.test(text),
         hasError: /error|failed|rejected|insufficient/i.test(text),
+        pageText: text.substring(0, 500),
       };
     });
     
@@ -768,6 +858,7 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
       console.log('   ❌ ERROR: Transaction failed');
     } else {
       console.log('   ⚠️ UNKNOWN: Check screenshots');
+      console.log(`   Page content: ${pageContent.pageText.substring(0, 200)}`);
     }
     
     await page.screenshot({ path: 'tests/screenshots/ui-liquidity-6-result.png', fullPage: true });

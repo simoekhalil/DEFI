@@ -63,51 +63,147 @@ const DEX_CONFIG = {
 async function dismissPrivacyModal(page: Page) {
   console.log('   Checking for privacy modal...');
   
-  // Wait a moment for modal to appear
-  await page.waitForTimeout(1500);
+  // Wait for page to stabilize
+  await page.waitForTimeout(2000);
   
-  // The modal has "Accept All" button in black background
+  // Check if Privacy Settings text is visible
+  const privacyVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 2000 }).catch(() => false);
+  
+  if (!privacyVisible) {
+    console.log('   ℹ️ No privacy modal visible');
+    return false;
+  }
+  
+  console.log('   🔒 Privacy modal detected, looking for Accept All button...');
+  
+  // The "Accept All" button is BLACK with white text on the RIGHT side
   const selectors = [
     'button:has-text("Accept All")',
     'button:has-text("Accept all")', 
     'button:has-text("ACCEPT ALL")',
     '[data-testid="uc-accept-all-button"]',
-    '.privacy-settings button >> text=Accept',
-    'button.accept-all',
   ];
   
   for (const selector of selectors) {
     try {
       const btn = page.locator(selector).first();
       if (await btn.isVisible({ timeout: 3000 })) {
-        console.log(`   Found privacy button: ${selector}`);
+        console.log(`   Found Accept All button: ${selector}`);
+        
+        // Scroll into view and click
+        await btn.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(500);
         await btn.click({ force: true });
-        console.log('   ✅ Privacy modal dismissed');
-        await page.waitForTimeout(1000);
+        
+        console.log('   ✅ Clicked Accept All');
+        await page.waitForTimeout(2000);
         
         // Verify modal is gone
-        await page.waitForSelector('text=Privacy Settings', { state: 'hidden', timeout: 5000 }).catch(() => {});
+        const stillVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 2000 }).catch(() => false);
+        if (!stillVisible) {
+          console.log('   ✅ Privacy modal dismissed successfully');
+          return true;
+        } else {
+          console.log('   ⚠️ Modal still visible, trying again...');
+          await btn.click({ force: true });
+          await page.waitForTimeout(2000);
+        }
+        
         return true;
       }
     } catch (e) {
-      // Try next
+      console.log(`   Selector ${selector} failed: ${e}`);
     }
   }
   
-  // Try clicking by position if text-based selectors fail
+  // Try using getByRole as fallback
   try {
+    console.log('   Trying role-based selector...');
     const acceptAllBtn = page.getByRole('button', { name: /accept all/i });
     if (await acceptAllBtn.isVisible({ timeout: 2000 })) {
       await acceptAllBtn.click({ force: true });
       console.log('   ✅ Privacy modal dismissed (role-based)');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       return true;
     }
   } catch (e) {
     // Ignore
   }
   
-  console.log('   ℹ️ No privacy modal found or already dismissed');
+  // Last resort: click by coordinates (Accept All is on the right side)
+  try {
+    console.log('   Trying coordinate-based click...');
+    const viewportSize = page.viewportSize();
+    if (viewportSize) {
+      // Accept All button is typically on the right side of the modal at the bottom
+      await page.mouse.click(viewportSize.width * 0.75, viewportSize.height * 0.85);
+      await page.waitForTimeout(2000);
+      console.log('   Clicked at coordinates');
+    }
+  } catch (e) {
+    // Ignore
+  }
+  
+  console.log('   ⚠️ Could not dismiss privacy modal');
+  return false;
+}
+
+// Helper to handle MetaMask transaction popup
+async function handleMetaMaskTransaction(wallet: any, popup: Page | null) {
+  console.log('   Attempting MetaMask transaction approval...');
+  
+  // Method 1: Use Dappwright's confirmTransaction
+  try {
+    await wallet.confirmTransaction();
+    console.log('   ✅ Transaction confirmed via Dappwright');
+    return true;
+  } catch (e: any) {
+    console.log(`   Dappwright confirmTransaction: ${e.message?.substring(0, 50)}`);
+  }
+  
+  // Method 2: If we have a popup page, try interacting with it directly
+  if (popup) {
+    try {
+      await popup.waitForTimeout(2000);
+      
+      // MetaMask v11+ selectors
+      const confirmSelectors = [
+        '[data-testid="page-container-footer-next"]', // MetaMask confirm button
+        '[data-testid="confirmation-submit-button"]',
+        'button.btn-primary',
+        'button:has-text("Confirm")',
+        'button:has-text("Approve")',
+        'button:has-text("Sign")',
+      ];
+      
+      for (const selector of confirmSelectors) {
+        try {
+          const btn = popup.locator(selector).first();
+          if (await btn.isVisible({ timeout: 2000 })) {
+            await btn.click();
+            console.log(`   ✅ Clicked ${selector} in MetaMask popup`);
+            await popup.waitForTimeout(2000);
+            return true;
+          }
+        } catch (e) {
+          // Try next selector
+        }
+      }
+    } catch (e: any) {
+      console.log(`   Popup interaction error: ${e.message?.substring(0, 50)}`);
+    }
+  }
+  
+  // Method 3: Try wallet.sign() as fallback
+  try {
+    await wallet.sign();
+    console.log('   ✅ Transaction signed via Dappwright sign()');
+    return true;
+  } catch (e) {
+    // Ignore
+  }
+  
+  console.log('   ⚠️ Could not confirm MetaMask transaction');
   return false;
 }
 
@@ -572,43 +668,85 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
           
           if (!disabled && !btnText?.toLowerCase().includes('connect')) {
             console.log('   🚀 CLICKING SUBMIT...');
+            
+            // Set up popup listener BEFORE clicking
+            const popupPromise = context.waitForEvent('page', { timeout: 30000 }).catch(() => null);
+            
             await submitBtn.click();
             await page.waitForTimeout(2000);
             submitted = true;
             
-            // Handle confirmation modal
-            const confirmBtn = page.locator('button:has-text("Confirm"), button:has-text("Add")').first();
-            if (await confirmBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+            // Handle confirmation modal (may trigger MetaMask)
+            const confirmBtn = page.locator('button:has-text("Confirm"), button:has-text("Confirm Swap"), button:has-text("Add")').first();
+            if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
               const confirmDisabled = await confirmBtn.isDisabled();
               if (!confirmDisabled) {
-                console.log('   Clicking confirm...');
+                console.log('   Found confirmation modal, clicking confirm...');
+                
+                // Set up another popup listener for the actual MetaMask TX
+                const txPopupPromise = context.waitForEvent('page', { timeout: 30000 }).catch(() => null);
+                
                 await confirmBtn.click();
-                await page.waitForTimeout(2000);
+                console.log('   Clicked confirm button');
+                await page.waitForTimeout(3000);
+                
+                // Try to handle MetaMask popup
+                const txPopup = await txPopupPromise;
+                if (txPopup) {
+                  console.log('   🎉 MetaMask TX popup detected!');
+                  await handleMetaMaskTransaction(wallet, txPopup);
+                } else {
+                  // Try Dappwright directly
+                  console.log('   No popup via event, trying Dappwright...');
+                  await handleMetaMaskTransaction(wallet, null);
+                }
+              }
+            } else {
+              // No confirm modal, check for direct MetaMask popup
+              const popup = await popupPromise;
+              if (popup) {
+                console.log('   🎉 MetaMask popup detected directly!');
+                await handleMetaMaskTransaction(wallet, popup);
               }
             }
             
             break;
           }
         }
-      } catch (e) { /* try next */ }
+      } catch (e) { 
+        console.log(`   Error: ${e}`);
+      }
     }
     
     await page.screenshot({ path: 'tests/screenshots/ui-liquidity-5-submitted.png', fullPage: true });
     
-    // Approve in MetaMask
-    if (submitted) {
-      console.log('\n📍 STEP 8: Approve in MetaMask');
-      
-      for (let i = 0; i < 3; i++) {
-        try {
-          await page.waitForTimeout(3000);
-          await wallet.confirmTransaction();
-          console.log(`   ✅ Transaction ${i + 1} approved`);
-        } catch (e) {
-          if (i === 0) console.log(`   ℹ️ No popup on attempt ${i + 1}`);
-          break;
+    // NOTE: GalaChain transactions DON'T use MetaMask for signing!
+    // MetaMask only provides wallet address authorization.
+    // Actual transaction signing happens via GalaChain's bundler service.
+    console.log('\n📍 STEP 8: Wait for GalaChain transaction processing');
+    console.log('   ℹ️ GalaChain uses bundler signing, not MetaMask TX popups');
+    
+    // Wait for transaction to process through GalaChain
+    await page.waitForTimeout(10000); // Give GalaChain time to process
+    
+    // Look for transaction status indicators in UI
+    const statusSelectors = [
+      'text=/processing|pending|confirming/i',
+      'text=/success|confirmed|complete/i',
+      'text=/failed|error|rejected/i',
+      '.toast',
+      '[class*="notification"]',
+      '[class*="status"]',
+    ];
+    
+    for (const selector of statusSelectors) {
+      try {
+        const statusEl = page.locator(selector).first();
+        if (await statusEl.isVisible({ timeout: 3000 })) {
+          const text = await statusEl.textContent();
+          console.log(`   Status indicator: ${text?.substring(0, 100)}`);
         }
-      }
+      } catch (e) { /* continue */ }
     }
     
     // Check result
@@ -655,8 +793,17 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
       timeout: DEX_CONFIG.pageLoadTimeout
     });
     
+    // Wait for page to fully render
+    await page.waitForTimeout(3000);
+    
+    // CRITICAL: Dismiss privacy modal FIRST
+    console.log('\n📍 STEP 1.5: Dismiss privacy modal');
     await dismissPrivacyModal(page);
     await waitForLoading(page);
+    
+    // Check again after a moment
+    await page.waitForTimeout(1000);
+    await dismissPrivacyModal(page);
     
     console.log(`   URL: ${page.url()}`);
     await page.screenshot({ path: 'tests/screenshots/ui-swap-1-page.png', fullPage: true });
@@ -679,58 +826,121 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
     await page.waitForTimeout(2000);
     await page.screenshot({ path: 'tests/screenshots/ui-swap-3-amount.png', fullPage: true });
     
-    // Submit swap
+    // Submit swap - GalaSwap uses "Review and Confirm" button
     console.log('\n📍 STEP 4: Submit swap');
     console.log('   ⚠️ SUBMITTING REAL TRANSACTION');
     
-    const swapBtn = page.locator('button:has-text("Swap"), button:has-text("Exchange"), button:has-text("Trade")').first();
+    // GalaSwap button selectors in order of preference
+    const swapBtnSelectors = [
+      'button:has-text("Review and Confirm")',
+      'button:has-text("Swap")',
+      'button:has-text("Exchange")',
+      'button:has-text("Trade")',
+      'button:has-text("Enter Amount")', // Shows when amount needed
+    ];
     
-    if (await swapBtn.isVisible({ timeout: 3000 })) {
-      const disabled = await swapBtn.isDisabled();
-      const text = await swapBtn.textContent();
-      console.log(`   Found button: "${text?.trim()}" (disabled: ${disabled})`);
-      
-      if (!disabled && !text?.toLowerCase().includes('connect')) {
-        console.log('   🚀 CLICKING SWAP...');
-        await swapBtn.click();
-        await page.waitForTimeout(2000);
-        
-        // Confirm modal
-        const confirmBtn = page.locator('button:has-text("Confirm Swap"), button:has-text("Confirm")').first();
-        if (await confirmBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await confirmBtn.click();
-          await page.waitForTimeout(2000);
+    let swapBtnFound = false;
+    for (const selector of swapBtnSelectors) {
+      try {
+        const swapBtn = page.locator(selector).first();
+        if (await swapBtn.isVisible({ timeout: 2000 })) {
+          const disabled = await swapBtn.isDisabled();
+          const text = await swapBtn.textContent();
+          console.log(`   Found button: "${text?.trim()}" (disabled: ${disabled})`);
+          
+          if (!disabled && !text?.toLowerCase().includes('connect') && !text?.toLowerCase().includes('enter amount')) {
+            console.log('   🚀 CLICKING SWAP BUTTON...');
+            await swapBtn.click();
+            swapBtnFound = true;
+            await page.waitForTimeout(3000);
+            
+            // Handle confirmation modal - "Confirm Swap" button
+            console.log('   Looking for confirmation modal...');
+            const confirmBtn = page.locator('button:has-text("Confirm Swap"), button:has-text("Confirm")').first();
+            if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+              console.log('   Found Confirm Swap button, clicking...');
+              await confirmBtn.click();
+              console.log('   ✅ Clicked Confirm Swap');
+              await page.waitForTimeout(5000);
+            }
+            
+            break;
+          } else {
+            console.log(`   Button not clickable: ${text?.trim()}`);
+          }
         }
+      } catch (e) {
+        // Try next selector
       }
+    }
+    
+    if (!swapBtnFound) {
+      console.log('   ⚠️ Could not find/click swap button');
+      // Log available buttons
+      const buttons = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('button')).map(b => b.textContent?.trim()).filter(Boolean).slice(0, 10);
+      });
+      console.log('   Available buttons:', buttons);
     }
     
     await page.screenshot({ path: 'tests/screenshots/ui-swap-4-submitted.png', fullPage: true });
     
-    // Approve in MetaMask
-    console.log('\n📍 STEP 5: Approve in MetaMask');
+    // Wait for GalaChain to process (NOT MetaMask - GalaChain uses bundler)
+    console.log('\n📍 STEP 5: Wait for GalaChain transaction');
+    console.log('   ℹ️ GalaChain uses bundler signing, not MetaMask TX popups');
     
-    for (let i = 0; i < 2; i++) {
-      try {
-        await page.waitForTimeout(3000);
-        await wallet.confirmTransaction();
-        console.log(`   ✅ Transaction ${i + 1} approved`);
-      } catch (e) {
+    // Wait for transaction to process
+    await page.waitForTimeout(10000);
+    
+    // Check result - wait for transaction to complete
+    console.log('\n📍 STEP 6: Check result');
+    await page.bringToFront();
+    
+    // Take intermediate screenshot
+    await page.screenshot({ path: 'tests/screenshots/ui-swap-5-processing.png', fullPage: true });
+    
+    // Wait for "Transaction in progress" to complete (up to 60 seconds)
+    console.log('   Waiting for transaction to complete...');
+    let txCompleted = false;
+    
+    for (let i = 0; i < 12; i++) { // 12 x 5s = 60s max wait
+      await page.waitForTimeout(5000);
+      
+      const status = await page.evaluate(() => {
+        const text = document.body.innerText;
+        return {
+          inProgress: /transaction in progress|processing|pending/i.test(text),
+          success: /success|confirmed|complete|swap.*complete/i.test(text),
+          error: /error|failed|rejected|insufficient/i.test(text),
+        };
+      });
+      
+      console.log(`   Check ${i + 1}: inProgress=${status.inProgress}, success=${status.success}, error=${status.error}`);
+      
+      if (status.success) {
+        console.log('   🎉 TRANSACTION SUCCESSFUL!');
+        txCompleted = true;
+        break;
+      } else if (status.error) {
+        console.log('   ❌ Transaction failed');
+        txCompleted = true;
+        break;
+      } else if (!status.inProgress) {
+        // Modal closed without clear status - check for UI changes
+        console.log('   Modal closed, checking final state...');
+        txCompleted = true;
         break;
       }
     }
-    
-    // Check result
-    console.log('\n📍 STEP 6: Check result');
-    await page.bringToFront();
-    await page.waitForTimeout(5000);
     
     await page.screenshot({ path: 'tests/screenshots/ui-swap-5-result.png', fullPage: true });
     
     const result = await page.evaluate(() => {
       const text = document.body.innerText;
       return {
-        hasSuccess: /success|confirmed|complete/i.test(text),
+        hasSuccess: /success|confirmed|complete|swap.*success/i.test(text),
         hasError: /error|failed|rejected/i.test(text),
+        pageText: text.substring(0, 500),
       };
     });
     
@@ -740,6 +950,7 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
       console.log('   ❌ ERROR: Swap failed');
     } else {
       console.log('   ⚠️ UNKNOWN: Check screenshots');
+      console.log(`   Page content: ${result.pageText.substring(0, 200)}`);
     }
     
     console.log('\n' + '='.repeat(50));

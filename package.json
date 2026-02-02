@@ -70,7 +70,18 @@
     "test:dex:incentive": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --timeout=90000",
     "test:dex:incentive:headed": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --headed --timeout=90000",
     "test:dex:incentive:api": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --project=dex-incentive-api",
-    "test:dex:incentive:ui": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --project=dex-incentive-ui --headed"
+    "test:dex:incentive:ui": "playwright test tests/dex-incentive-apr.spec.ts --config=playwright-dex-test1.config.ts --project=dex-incentive-ui --headed",
+    "test:dex:swap": "playwright test tests/dex-swap-transactions.spec.ts --timeout=120000",
+    "test:dex:swap:headed": "playwright test tests/dex-swap-transactions.spec.ts --headed --timeout=120000",
+    "test:dex:liquidity": "playwright test tests/dex-liquidity-edge-cases.spec.ts --timeout=120000",
+    "test:dex:liquidity:headed": "playwright test tests/dex-liquidity-edge-cases.spec.ts --headed --timeout=120000",
+    "test:dex:recovery": "playwright test tests/dex-transaction-recovery.spec.ts --timeout=90000",
+    "test:dex:recovery:headed": "playwright test tests/dex-transaction-recovery.spec.ts --headed --timeout=90000",
+    "test:dex:pools": "playwright test tests/dex-pool-operations.spec.ts --timeout=120000",
+    "test:dex:pools:headed": "playwright test tests/dex-pool-operations.spec.ts --headed --timeout=120000",
+    "test:dex:all": "playwright test tests/dex-*.spec.ts --timeout=180000",
+    "test:dex:all:headed": "playwright test tests/dex-*.spec.ts --headed --timeout=180000",
+    "test:dex:comprehensive": "playwright test tests/gala-dex-qa-comprehensive.spec.ts --headed --timeout=300000"
   },
   "dependencies": {
     "@gala-chain/launchpad-sdk": "^5.0.4-beta.18",
@@ -80,7 +91,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
-    "@tenkeylabs/dappwright": "^2.11.3",
+    "@tenkeylabs/dappwright": "^2.13.2",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",

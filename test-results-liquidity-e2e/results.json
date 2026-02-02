@@ -1,0 +1,280 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\Simone\\web3-testing-app\\playwright-liquidity-e2e.config.ts",
+    "rootDir": "C:/Users/Simone/web3-testing-app/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report-liquidity-e2e",
+          "open": "never"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results-liquidity-e2e/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/Simone/web3-testing-app/test-results-liquidity-e2e",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "liquidity-e2e-chromium",
+        "name": "liquidity-e2e-chromium",
+        "testDir": "C:/Users/Simone/web3-testing-app/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dex-liquidity-pool-creation-e2e.spec.ts"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "dex-liquidity-pool-creation-e2e.spec.ts",
+      "file": "dex-liquidity-pool-creation-e2e.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "DEX Liquidity Pool Creation - E2E with Real Transactions",
+          "file": "dex-liquidity-pool-creation-e2e.spec.ts",
+          "line": 63,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Create New Liquidity Pool - Full E2E Transaction",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "liquidity-e2e-chromium",
+                  "projectName": "liquidity-e2e-chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 76329,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n======================================================================\n"
+                        },
+                        {
+                          "text": "🏊 DEX LIQUIDITY POOL CREATION E2E TEST\n"
+                        },
+                        {
+                          "text": "======================================================================\n"
+                        },
+                        {
+                          "text": "⚠️  THIS TEST SUBMITS REAL TRANSACTIONS\n"
+                        },
+                        {
+                          "text": "📍 Target: https://lpad-frontend-dev1.defi.gala.com\n"
+                        },
+                        {
+                          "text": "💰 Pool: GALA/GUSDC\n"
+                        },
+                        {
+                          "text": "📊 Fee Tier: 0.3%\n"
+                        },
+                        {
+                          "text": "💵 Amounts: 10 GALA / 0.5 GUSDC\n"
+                        },
+                        {
+                          "text": "======================================================================\n"
+                        },
+                        {
+                          "text": "✅ Wallet seed phrase configured\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 1: Initializing MetaMask via Dappwright...\n"
+                        },
+                        {
+                          "text": "   Using MetaMask version: 13.13.1\n"
+                        },
+                        {
+                          "text": "\n"
+                        },
+                        {
+                          "text": "Using metamask v13.13.1\n"
+                        },
+                        {
+                          "text": "\n"
+                        },
+                        {
+                          "text": "Downloading metamask 13.13.1...\n"
+                        },
+                        {
+                          "text": "✅ MetaMask extension loaded\n"
+                        },
+                        {
+                          "text": "📍 Wallet Address: Unknown\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 2: Navigating to DEX...\n"
+                        },
+                        {
+                          "text": "✅ Loaded: https://lpad-frontend-dev1.defi.gala.com/\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 3: Connecting wallet...\n"
+                        },
+                        {
+                          "text": "   Found connect button: button:has-text(\"Connect Wallet\")\n"
+                        },
+                        {
+                          "text": "   Selecting MetaMask: text=/metamask/i\n"
+                        },
+                        {
+                          "text": "   Waiting for MetaMask approval popup...\n"
+                        },
+                        {
+                          "text": "✅ Wallet connected successfully\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 4: Navigating to Pools section...\n"
+                        },
+                        {
+                          "text": "   Trying direct URL navigation...\n"
+                        },
+                        {
+                          "text": "   Current URL: https://lpad-frontend-dev1.defi.gala.com/pools\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 5: Opening pool creation form...\n"
+                        },
+                        {
+                          "text": "   ⚠️ Create pool button not found, looking for alternative entry...\n"
+                        },
+                        {
+                          "text": "   Available buttons: []\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 6: Selecting token pair...\n"
+                        },
+                        {
+                          "text": "   Token0: GALA\n"
+                        },
+                        {
+                          "text": "   Token1: GUSDC\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 7: Selecting fee tier...\n"
+                        },
+                        {
+                          "text": "   Target fee: 0.3%\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 8: Entering liquidity amounts...\n"
+                        },
+                        {
+                          "text": "   Amount0: 10 GALA\n"
+                        },
+                        {
+                          "text": "   Amount1: 0.5 GUSDC\n"
+                        },
+                        {
+                          "text": "   Found 0 amount inputs\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 9: Setting price range (if applicable)...\n"
+                        },
+                        {
+                          "text": "\n📍 STEP 10: Submitting pool creation transaction...\n"
+                        },
+                        {
+                          "text": "⚠️  THIS WILL SUBMIT A REAL TRANSACTION\n"
+                        },
+                        {
+                          "text": "   ❌ Could not find/click submit button\n"
+                        },
+                        {
+                          "text": "✅ Browser closed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T17:14:47.797Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Simone\\web3-testing-app\\test-results-liquidity-e2e\\dex-liquidity-pool-creatio-8dd11-Pool---Full-E2E-Transaction-liquidity-e2e-chromium\\test-finished-3.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Simone\\web3-testing-app\\test-results-liquidity-e2e\\dex-liquidity-pool-creatio-8dd11-Pool---Full-E2E-Transaction-liquidity-e2e-chromium\\test-finished-4.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Simone\\web3-testing-app\\test-results-liquidity-e2e\\dex-liquidity-pool-creatio-8dd11-Pool---Full-E2E-Transaction-liquidity-e2e-chromium\\test-finished-1.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "38c004458be50a3c681e-2802768b103e4d1cbdf3",
+              "file": "dex-liquidity-pool-creation-e2e.spec.ts",
+              "line": 98,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-02-02T17:14:47.008Z",
+    "duration": 78491.423,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

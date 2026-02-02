@@ -1,5 +1,5 @@
 import { test, expect, BrowserContext, Page } from '@playwright/test';
-import { bootstrap } from '@tenkeylabs/dappwright';
+import { bootstrap, MetaMaskWallet } from '@tenkeylabs/dappwright';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -111,10 +111,10 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       
       const seedPhrase = process.env.WALLET_SEED_PHRASE || process.env.TEST_SEED_PHRASE;
       
-      // Use the recommended version from Dappwright (13.13.1 in v2.13.2)
+      // Use the recommended version from Dappwright
       // Can override with METAMASK_VERSION env var if needed
-      const metamaskVersion = process.env.METAMASK_VERSION || '13.13.1';
-      console.log(`   Using MetaMask version: ${metamaskVersion}`);
+      const metamaskVersion = process.env.METAMASK_VERSION || MetaMaskWallet.recommendedVersion;
+      console.log(`   Using MetaMask version: ${metamaskVersion} (recommended: ${MetaMaskWallet.recommendedVersion})`);
       
       const [walletInstance, metaMaskPage, browserContext] = await bootstrap('', {
         wallet: 'metamask',
@@ -140,6 +140,18 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
         waitUntil: 'networkidle',
         timeout: TEST_CONFIG.pageLoadTimeout
       });
+      
+      // Dismiss privacy modal if present
+      try {
+        const acceptAllBtn = page.locator('button:has-text("Accept All"), [data-testid="uc-accept-all-button"]').first();
+        if (await acceptAllBtn.isVisible({ timeout: 3000 })) {
+          await acceptAllBtn.click();
+          console.log('   ✅ Privacy modal dismissed');
+          await page.waitForTimeout(1000);
+        }
+      } catch (e) {
+        // No privacy modal, continue
+      }
       
       console.log(`✅ Loaded: ${page.url()}`);
       await page.waitForTimeout(3000);
@@ -285,6 +297,14 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
         await page.goto(TEST_CONFIG.poolUrl, { timeout: 15000 }).catch(() => {});
         await page.waitForTimeout(2000);
         
+        // Dismiss privacy modal if present
+        const acceptBtn = page.locator('button:has-text("Accept All"), [data-testid="uc-accept-all-button"]').first();
+        if (await acceptBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await acceptBtn.click();
+          console.log('   ✅ Privacy modal dismissed');
+          await page.waitForTimeout(1000);
+        }
+        
         if (!page.url().includes('pool')) {
           await page.goto(TEST_CONFIG.swapUrl, { timeout: 15000 }).catch(() => {});
           await page.waitForTimeout(2000);
@@ -300,51 +320,50 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       // ===== STEP 5: Open Create Pool / Add Liquidity Form =====
       console.log('\n📍 STEP 5: Opening pool creation form...');
       
-      // GalaSwap DEX pool creation selectors
-      const createPoolSelectors = [
-        'button:has-text("Create Pool")',
-        'button:has-text("New Pool")',
-        'button:has-text("Add Liquidity")',
-        'button:has-text("+ New Position")',
-        'button:has-text("New Position")',
-        'a:has-text("Create Pool")',
-        'a:has-text("Add Liquidity")',
-        'a:has-text("New Position")',
-        '[data-testid*="create-pool"]',
-        '[data-testid*="add-liquidity"]',
-        '[data-testid*="new-position"]',
-        // GalaSwap specific
-        'button:has-text("+")',
-        '[class*="add-position"]',
-        '[class*="create-pool"]',
-      ];
+      // GalaSwap DEX - Navigate to add liquidity page
+      // The "New Position" is a link that goes to /dex/pool/add-liquidity
+      const newPositionLink = page.locator('a:has-text("New position"), a[href*="add-liquidity"]').first();
       
       let formOpened = false;
-      for (const selector of createPoolSelectors) {
-        try {
-          const btn = page.locator(selector).first();
-          if (await btn.isVisible({ timeout: 3000 })) {
-            console.log(`   Found create button: ${selector}`);
-            await btn.click();
-            await page.waitForTimeout(2000);
-            formOpened = true;
-            break;
-          }
-        } catch (e) {
-          // Try next
+      if (await newPositionLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+        console.log('   Found "New Position" link');
+        await Promise.all([
+          page.waitForURL('**/add-liquidity**', { timeout: 10000 }).catch(() => {}),
+          newPositionLink.click()
+        ]);
+        await page.waitForTimeout(2000);
+        
+        // Dismiss privacy modal if it appears again
+        const acceptBtn = page.locator('button:has-text("Accept All"), [data-testid="uc-accept-all-button"]').first();
+        if (await acceptBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await acceptBtn.click();
+          await page.waitForTimeout(1000);
         }
+        
+        formOpened = page.url().includes('add-liquidity');
+        console.log(`   Navigated to: ${page.url()}`);
       }
       
       if (!formOpened) {
-        console.log('   ⚠️ Create pool button not found, looking for alternative entry...');
-        // Log all visible buttons for debugging
-        const buttons = await page.evaluate(() => {
-          return Array.from(document.querySelectorAll('button')).map(b => ({
-            text: b.textContent?.trim().substring(0, 50),
-            visible: b.offsetParent !== null
-          })).filter(b => b.visible);
-        });
-        console.log('   Available buttons:', JSON.stringify(buttons, null, 2));
+        // Try direct navigation
+        console.log('   Trying direct navigation to add-liquidity...');
+        await page.goto(`${TEST_CONFIG.baseUrl}/dex/pool/add-liquidity`, { timeout: 15000 });
+        await page.waitForTimeout(2000);
+        
+        // Dismiss privacy modal
+        const acceptBtn = page.locator('button:has-text("Accept All")').first();
+        if (await acceptBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await acceptBtn.click();
+          await page.waitForTimeout(1000);
+        }
+        
+        formOpened = page.url().includes('add-liquidity');
+      }
+      
+      if (!formOpened) {
+        console.log('   ⚠️ Could not navigate to add liquidity form');
+      } else {
+        console.log('   ✅ Add liquidity form opened');
       }
       
       await page.screenshot({ 
@@ -357,26 +376,21 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       console.log(`   Token0: ${TEST_CONFIG.pool.token0}`);
       console.log(`   Token1: ${TEST_CONFIG.pool.token1}`);
       
-      // Find token selection buttons/dropdowns
-      const tokenSelectSelectors = [
-        'button:has-text("Select")',
-        'button:has-text("Select token")',
-        '[data-testid*="token-select"]',
-        '.token-selector',
-        'button[class*="token"]',
-      ];
+      // GalaSwap uses "Select token" buttons
+      const tokenSelectButtons = page.locator('button:has-text("Select token")');
+      const tokenBtnCount = await tokenSelectButtons.count();
+      console.log(`   Found ${tokenBtnCount} token selector buttons`);
       
-      // Select first token (Token0)
-      for (const selector of tokenSelectSelectors) {
-        try {
-          const tokenBtn = page.locator(selector).first();
-          if (await tokenBtn.isVisible({ timeout: 2000 })) {
-            console.log(`   Opening token selector: ${selector}`);
-            await tokenBtn.click();
-            await page.waitForTimeout(1500);
-            
-            // Search/select token
-            const searchInput = page.locator('input[placeholder*="Search"], input[placeholder*="search"], input[type="search"]').first();
+      // Select first token (Token0 - GALA)
+      if (tokenBtnCount >= 1) {
+        const firstTokenBtn = tokenSelectButtons.first();
+        if (await firstTokenBtn.isVisible({ timeout: 3000 })) {
+          console.log(`   Opening first token selector...`);
+          await firstTokenBtn.click();
+          await page.waitForTimeout(1500);
+          
+          // Search/select GALA
+          const searchInput = page.locator('input[placeholder*="Search"], input[placeholder*="search"], input[type="search"]').first();
             if (await searchInput.isVisible({ timeout: 2000 })) {
               await searchInput.fill(TEST_CONFIG.pool.token0);
               await page.waitForTimeout(1000);
@@ -436,14 +450,16 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       // ===== STEP 7: Select Fee Tier =====
       console.log('\n📍 STEP 7: Selecting fee tier...');
       
-      const feeTierPercent = TEST_CONFIG.pool.feeTier / 10000;
+      const feeTierPercent = (TEST_CONFIG.pool.feeTier / 10000).toFixed(2);
       console.log(`   Target fee: ${feeTierPercent}%`);
       
+      // GalaSwap fee tier buttons have format like "0.30% 0% select"
       const feeSelectors = [
         `button:has-text("${feeTierPercent}%")`,
-        `text="${feeTierPercent}%"`,
+        'button:has-text("0.30%")', // 0.3% fee tier
+        'button:has-text("0.05%")', // 0.05% fee tier  
+        'button:has-text("1.00%")', // 1% fee tier
         `[data-testid*="fee-${TEST_CONFIG.pool.feeTier}"]`,
-        'button:has-text("0.3%")', // Common fee tier
       ];
       
       for (const selector of feeSelectors) {
@@ -781,7 +797,7 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
     
     // Initialize wallet if not already done
     if (!wallet) {
-      const metamaskVersion = process.env.METAMASK_VERSION || '13.13.1';
+      const metamaskVersion = process.env.METAMASK_VERSION || MetaMaskWallet.recommendedVersion;
       const [walletInstance, _, browserContext] = await bootstrap('', {
         wallet: 'metamask',
         version: metamaskVersion,

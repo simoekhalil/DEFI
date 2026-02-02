@@ -394,6 +394,23 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       const tokenBtnCount = await tokenSelectButtons.count();
       console.log(`   Found ${tokenBtnCount} token selector buttons`);
       
+      // Helper function to close any open modal
+      const closeTokenModal = async () => {
+        // Try pressing Escape to close modal
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+        
+        // Also try clicking outside the modal
+        const modalBackdrop = page.locator('.modal-backdrop, .modal.show').first();
+        if (await modalBackdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(500);
+        }
+        
+        // Wait for modal to close
+        await page.waitForSelector('.modal.show', { state: 'hidden', timeout: 3000 }).catch(() => {});
+      };
+      
       // Select first token (Token0 - GALA)
       if (tokenBtnCount >= 1) {
         try {
@@ -415,22 +432,33 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
             if (await tokenOption.isVisible({ timeout: 2000 })) {
               await tokenOption.click();
               console.log(`   ✅ Selected ${TEST_CONFIG.pool.token0}`);
+              await page.waitForTimeout(1000);
             }
+            
+            // Close modal if still open
+            await closeTokenModal();
           }
         } catch (e) {
           console.log(`   ⚠️ Error selecting first token: ${e}`);
+          await closeTokenModal();
         }
       }
       
       await page.waitForTimeout(1000);
       
       // Select second token (Token1 - GUSDC)
-      if (tokenBtnCount >= 2) {
+      // Re-query the buttons after first selection (DOM may have changed)
+      const updatedTokenButtons = page.locator('button:has-text("Select token")');
+      const updatedCount = await updatedTokenButtons.count();
+      console.log(`   Found ${updatedCount} token selector buttons after first selection`);
+      
+      if (updatedCount >= 1) {
         try {
-          const secondTokenBtn = tokenSelectButtons.nth(1);
+          // After selecting first token, the second selector should be the first "Select token" button
+          const secondTokenBtn = updatedTokenButtons.first();
           if (await secondTokenBtn.isVisible({ timeout: 3000 })) {
             console.log(`   Opening second token selector...`);
-            await secondTokenBtn.click();
+            await secondTokenBtn.click({ force: true });
             await page.waitForTimeout(1500);
             
             // Search/select token
@@ -445,10 +473,15 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
             if (await tokenOption.isVisible({ timeout: 2000 })) {
               await tokenOption.click();
               console.log(`   ✅ Selected ${TEST_CONFIG.pool.token1}`);
+              await page.waitForTimeout(1000);
             }
+            
+            // Close modal if still open
+            await closeTokenModal();
           }
         } catch (e) {
           console.log(`   ⚠️ Error selecting second token: ${e}`);
+          await closeTokenModal();
         }
       }
       

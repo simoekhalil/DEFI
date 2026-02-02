@@ -885,12 +885,104 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
     
     await page.screenshot({ path: 'tests/screenshots/ui-swap-4-submitted.png', fullPage: true });
     
-    // Wait for GalaChain to process (NOT MetaMask - GalaChain uses bundler)
-    console.log('\n📍 STEP 5: Wait for GalaChain transaction');
-    console.log('   ℹ️ GalaChain uses bundler signing, not MetaMask TX popups');
+    // STEP 5: Handle MetaMask transaction approval popup
+    console.log('\n📍 STEP 5: Handle MetaMask transaction approval');
+    console.log('   Watching for MetaMask signature/transaction popup...');
     
-    // Wait for transaction to process
-    await page.waitForTimeout(10000);
+    // Watch for new popup windows (MetaMask transaction approval)
+    let txApproved = false;
+    
+    // Method 1: Try using Dappwright's confirmTransaction
+    try {
+      console.log('   Trying Dappwright confirmTransaction...');
+      await wallet.confirmTransaction({ timeout: 15000 });
+      console.log('   ✅ Transaction confirmed via Dappwright!');
+      txApproved = true;
+    } catch (e) {
+      console.log(`   Dappwright confirmTransaction failed: ${e}`);
+    }
+    
+    // Method 2: Try sign() for message signing
+    if (!txApproved) {
+      try {
+        console.log('   Trying Dappwright sign...');
+        await wallet.sign();
+        console.log('   ✅ Signed via Dappwright!');
+        txApproved = true;
+      } catch (e) {
+        console.log(`   Dappwright sign failed: ${e}`);
+      }
+    }
+    
+    // Method 3: Try approve() as fallback
+    if (!txApproved) {
+      try {
+        console.log('   Trying Dappwright approve...');
+        await wallet.approve();
+        console.log('   ✅ Approved via Dappwright!');
+        txApproved = true;
+      } catch (e) {
+        console.log(`   Dappwright approve failed: ${e}`);
+      }
+    }
+    
+    // Method 4: Manually check for popup windows
+    if (!txApproved) {
+      console.log('   Checking for popup windows manually...');
+      const allPages = browserContext.pages();
+      console.log(`   Found ${allPages.length} pages`);
+      
+      for (const p of allPages) {
+        const url = p.url();
+        console.log(`   Page URL: ${url}`);
+        
+        if (url.includes('chrome-extension') && url.includes('notification')) {
+          console.log('   Found MetaMask notification popup!');
+          await p.bringToFront();
+          await p.waitForTimeout(2000);
+          
+          // Take screenshot of MetaMask popup
+          await p.screenshot({ path: 'tests/screenshots/ui-swap-metamask-popup.png' });
+          
+          // Try to find and click confirm/approve button
+          const confirmSelectors = [
+            'button:has-text("Confirm")',
+            'button:has-text("Sign")',
+            'button:has-text("Approve")',
+            '[data-testid="confirm-footer-button"]',
+            '[data-testid="page-container-footer-next"]',
+          ];
+          
+          for (const sel of confirmSelectors) {
+            try {
+              const btn = p.locator(sel).first();
+              if (await btn.isVisible({ timeout: 2000 })) {
+                console.log(`   Found button: ${sel}`);
+                await btn.click();
+                console.log('   ✅ Clicked confirm in MetaMask!');
+                txApproved = true;
+                break;
+              }
+            } catch (e) {
+              // Try next
+            }
+          }
+          
+          break;
+        }
+      }
+    }
+    
+    if (!txApproved) {
+      console.log('   ⚠️ No MetaMask popup detected or approved');
+      console.log('   This could mean:');
+      console.log('   1. GalaChain uses bundler signing (no MetaMask needed)');
+      console.log('   2. Popup was blocked or appeared elsewhere');
+      console.log('   3. Session already authorized');
+    }
+    
+    // Wait for transaction processing
+    await page.waitForTimeout(5000);
     
     // Check result - wait for transaction to complete
     console.log('\n📍 STEP 6: Check result');

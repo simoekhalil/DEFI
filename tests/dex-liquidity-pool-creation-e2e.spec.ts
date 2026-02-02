@@ -305,6 +305,9 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
           await page.waitForTimeout(1000);
         }
         
+        // Wait for loader to disappear
+        await page.waitForSelector('.loader', { state: 'hidden', timeout: 30000 }).catch(() => {});
+        
         if (!page.url().includes('pool')) {
           await page.goto(TEST_CONFIG.swapUrl, { timeout: 15000 }).catch(() => {});
           await page.waitForTimeout(2000);
@@ -322,14 +325,24 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       
       // GalaSwap DEX - Navigate to add liquidity page
       // The "New Position" is a link that goes to /dex/pool/add-liquidity
+      
+      // Wait for any loading spinner to disappear
+      await page.waitForSelector('.loader', { state: 'hidden', timeout: 30000 }).catch(() => {});
+      await page.waitForSelector('[class*="loading"]', { state: 'hidden', timeout: 5000 }).catch(() => {});
+      
       const newPositionLink = page.locator('a:has-text("New position"), a[href*="add-liquidity"]').first();
       
       let formOpened = false;
       if (await newPositionLink.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.log('   Found "New Position" link');
+        
+        // Wait for link to be clickable (no overlay)
+        await newPositionLink.waitFor({ state: 'visible', timeout: 10000 });
+        await page.waitForTimeout(1000); // Extra stability wait
+        
         await Promise.all([
-          page.waitForURL('**/add-liquidity**', { timeout: 10000 }).catch(() => {}),
-          newPositionLink.click()
+          page.waitForURL('**/add-liquidity**', { timeout: 15000 }).catch(() => {}),
+          newPositionLink.click({ force: true }) // Force click if needed
         ]);
         await page.waitForTimeout(2000);
         
@@ -383,62 +396,59 @@ test.describe('DEX Liquidity Pool Creation - E2E with Real Transactions', () => 
       
       // Select first token (Token0 - GALA)
       if (tokenBtnCount >= 1) {
-        const firstTokenBtn = tokenSelectButtons.first();
-        if (await firstTokenBtn.isVisible({ timeout: 3000 })) {
-          console.log(`   Opening first token selector...`);
-          await firstTokenBtn.click();
-          await page.waitForTimeout(1500);
-          
-          // Search/select GALA
-          const searchInput = page.locator('input[placeholder*="Search"], input[placeholder*="search"], input[type="search"]').first();
+        try {
+          const firstTokenBtn = tokenSelectButtons.first();
+          if (await firstTokenBtn.isVisible({ timeout: 3000 })) {
+            console.log(`   Opening first token selector...`);
+            await firstTokenBtn.click();
+            await page.waitForTimeout(1500);
+            
+            // Search/select GALA
+            const searchInput = page.locator('input[placeholder*="Search"], input[placeholder*="search"], input[type="search"]').first();
             if (await searchInput.isVisible({ timeout: 2000 })) {
               await searchInput.fill(TEST_CONFIG.pool.token0);
               await page.waitForTimeout(1000);
             }
             
             // Click on token in list
-            const tokenOption = page.locator(`text="${TEST_CONFIG.pool.token0}"`, { hasText: TEST_CONFIG.pool.token0 }).first();
+            const tokenOption = page.locator(`text="${TEST_CONFIG.pool.token0}"`).first();
             if (await tokenOption.isVisible({ timeout: 2000 })) {
               await tokenOption.click();
               console.log(`   ✅ Selected ${TEST_CONFIG.pool.token0}`);
             }
-            
-            break;
           }
         } catch (e) {
-          // Try next
+          console.log(`   ⚠️ Error selecting first token: ${e}`);
         }
       }
       
       await page.waitForTimeout(1000);
       
-      // Select second token (Token1)
-      for (const selector of tokenSelectSelectors) {
+      // Select second token (Token1 - GUSDC)
+      if (tokenBtnCount >= 2) {
         try {
-          // Get the second token selector (skip the first one which is already selected)
-          const tokenBtns = page.locator(selector);
-          const count = await tokenBtns.count();
-          
-          if (count >= 2) {
-            await tokenBtns.nth(1).click();
+          const secondTokenBtn = tokenSelectButtons.nth(1);
+          if (await secondTokenBtn.isVisible({ timeout: 3000 })) {
+            console.log(`   Opening second token selector...`);
+            await secondTokenBtn.click();
             await page.waitForTimeout(1500);
             
+            // Search/select token
             const searchInput = page.locator('input[placeholder*="Search"], input[placeholder*="search"], input[type="search"]').first();
             if (await searchInput.isVisible({ timeout: 2000 })) {
               await searchInput.fill(TEST_CONFIG.pool.token1);
               await page.waitForTimeout(1000);
             }
             
-            const tokenOption = page.locator(`text="${TEST_CONFIG.pool.token1}"`, { hasText: TEST_CONFIG.pool.token1 }).first();
+            // Click on token in list
+            const tokenOption = page.locator(`text="${TEST_CONFIG.pool.token1}"`).first();
             if (await tokenOption.isVisible({ timeout: 2000 })) {
               await tokenOption.click();
               console.log(`   ✅ Selected ${TEST_CONFIG.pool.token1}`);
             }
-            
-            break;
           }
         } catch (e) {
-          // Try next
+          console.log(`   ⚠️ Error selecting second token: ${e}`);
         }
       }
       

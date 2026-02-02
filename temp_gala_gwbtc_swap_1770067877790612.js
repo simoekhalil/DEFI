@@ -33,20 +33,20 @@ async function waitForTransaction(txId, maxAttempts = 10) {
             
         });
         // Try with human-readable amount string
-        console.error("DEBUG: Attempting quote with amount:", "0.15651769");
+        console.error("DEBUG: Attempting quote with amount:", "0.15184619");
         const quote = await gSwap.quoting.quoteExactInput(
             "GALA|Unit|none|none",
             "GWBTC|Unit|none|none",
-            "0.15651769"
+            "0.15184619"
         );
         console.error("DEBUG: Quote completed. Raw output:", quote.outTokenAmount.toString());
-        console.error("DEBUG: Attempting swap with amount:", "0.15651769");
+        console.error("DEBUG: Attempting swap with amount:", "0.15184619");
         const tx = await gSwap.swaps.swap(
             "GALA|Unit|none|none",
             "GWBTC|Unit|none|none",
             10000,
             {
-                exactIn: "0.15651769",
+                exactIn: "0.15184619",
                 amountOutMinimum: quote.outTokenAmount.multipliedBy(0.95)
             },
             'client|618ae395c1c653111d3315be'

@@ -632,6 +632,58 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
       } catch (e) { /* try next */ }
     }
     
+    // Configure slippage tolerance (important for avoiding "Slippage tolerance exceeded" errors)
+    console.log('\n📍 STEP 4.5: Configure slippage tolerance');
+    
+    // Find and click the settings gear icon
+    const settingsIcon = page.locator('[class*="settings"], button[aria-label*="settings"], svg[class*="gear"], [class*="cog"]').first();
+    const settingsBtn = page.locator('button:has(svg), [class*="setting"]').first();
+    
+    // Try to find settings button near "Add Liquidity" title
+    try {
+      // The settings icon is usually a gear icon in the header area
+      const gearIcon = page.locator('svg').filter({ has: page.locator('path[d*="gear"], path[d*="cog"]') }).first();
+      if (await gearIcon.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await gearIcon.click();
+        console.log('   Found settings gear icon');
+      } else {
+        // Try clicking any button with settings-like appearance in the header
+        const headerSettingsBtn = page.locator('[class*="setting"], [class*="gear"]').first();
+        if (await headerSettingsBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await headerSettingsBtn.click();
+          console.log('   Found settings button');
+        }
+      }
+      
+      await page.waitForTimeout(1000);
+      
+      // Look for slippage input in settings modal
+      const slippageInput = page.locator('input[placeholder*="slippage"], input[type="number"]').first();
+      if (await slippageInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+        // Set higher slippage (5%)
+        await slippageInput.click();
+        await page.keyboard.press('Control+a');
+        await page.keyboard.type('5');
+        console.log('   ✅ Set slippage to 5%');
+        
+        // Close settings modal (click outside or press escape)
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+      } else {
+        // Try clicking a preset slippage option
+        const slippageOption = page.locator('button:has-text("1%"), button:has-text("5%"), button:has-text("Auto")').first();
+        if (await slippageOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await slippageOption.click();
+          console.log('   ✅ Selected slippage preset');
+          await page.keyboard.press('Escape');
+        }
+      }
+    } catch (e) {
+      console.log(`   Could not configure slippage: ${e}`);
+    }
+    
+    await page.waitForTimeout(1000);
+    
     // Set price range (full range)
     console.log('\n📍 STEP 5: Set price range');
     

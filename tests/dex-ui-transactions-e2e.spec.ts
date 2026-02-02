@@ -634,33 +634,227 @@ test.describe('DEX UI Transactions - E2E with MetaMask', () => {
     
     // Set price range (full range)
     console.log('\n📍 STEP 5: Set price range');
-    const fullRangeBtn = page.locator('button:has-text("Full Range"), button:has-text("Full")').first();
-    if (await fullRangeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await fullRangeBtn.click();
-      console.log('   ✅ Selected full range');
+    
+    // Scroll down to see the price range section
+    await page.evaluate(() => window.scrollBy(0, 300));
+    await page.waitForTimeout(1000);
+    
+    // Click "Full Range" button - be specific about the text match
+    const fullRangeSelectors = [
+      'button:has-text("Full Range")',
+      'button >> text=Full Range',
+      'text=Full Range',
+    ];
+    
+    let fullRangeClicked = false;
+    for (const selector of fullRangeSelectors) {
+      try {
+        const btn = page.locator(selector).first();
+        if (await btn.isVisible({ timeout: 2000 })) {
+          console.log(`   Found Full Range button: ${selector}`);
+          await btn.click();
+          console.log('   ✅ Clicked Full Range');
+          fullRangeClicked = true;
+          await page.waitForTimeout(2000);
+          break;
+        }
+      } catch (e) {
+        // Try next
+      }
+    }
+    
+    if (!fullRangeClicked) {
+      console.log('   ⚠️ Could not find Full Range button');
+    }
+    
+    await page.screenshot({ path: 'tests/screenshots/ui-liquidity-3a-pricerange.png', fullPage: true });
+    
+    // Check for price range errors and fix if needed
+    const priceError = await page.locator('text=/low price.*greater|min price.*lower|invalid range/i').isVisible({ timeout: 2000 }).catch(() => false);
+    
+    if (priceError) {
+      console.log('   ⚠️ Price range error detected - fixing...');
+      
+      // Find the Low price and High price input fields specifically
+      // They're labeled with "Low price" and "High price" text nearby
+      const lowPriceSection = page.locator('text=Low price').locator('..').locator('input').first();
+      const highPriceSection = page.locator('text=High price').locator('..').locator('input').first();
+      
+      // Get current values for debugging
+      try {
+        const allInputs = await page.locator('input').all();
+        console.log(`   Found ${allInputs.length} total inputs on page`);
+        
+        for (let i = 0; i < Math.min(allInputs.length, 6); i++) {
+          const value = await allInputs[i].inputValue().catch(() => 'N/A');
+          console.log(`   Input ${i}: value="${value}"`);
+        }
+      } catch (e) {
+        console.log(`   Error reading inputs: ${e}`);
+      }
+      
+      // Try to fix by setting valid range values
+      // For GALA/GUSDC, market price is ~0.14 GUSDC per GALA
+      // Set low = 0.01, high = 1.0
+      try {
+        // Method 1: Use labeled sections
+        if (await lowPriceSection.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await lowPriceSection.click({ clickCount: 3 });
+          await lowPriceSection.fill('0.01');
+          console.log('   Set low price to 0.01 (via label)');
+        }
+        
+        await page.waitForTimeout(500);
+        
+        if (await highPriceSection.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await highPriceSection.click({ clickCount: 3 });
+          await highPriceSection.fill('1');
+          console.log('   Set high price to 1 (via label)');
+        }
+      } catch (e) {
+        console.log(`   Label-based fix failed: ${e}`);
+        
+        // Method 2: Find inputs by order - Low price input comes before High price
+        try {
+          const priceInputs = await page.locator('input[inputmode="decimal"], input[type="number"]').all();
+          if (priceInputs.length >= 2) {
+            // First two are typically low/high prices
+            await priceInputs[0].click({ clickCount: 3 });
+            await priceInputs[0].fill('0.01');
+            await page.waitForTimeout(300);
+            await priceInputs[1].click({ clickCount: 3 });
+            await priceInputs[1].fill('1');
+            console.log('   Set price range via input order');
+          }
+        } catch (e2) {
+          console.log(`   Order-based fix also failed: ${e2}`);
+        }
+      }
+      
+      await page.waitForTimeout(1000);
+      
+      // Verify error is resolved
+      const stillError = await page.locator('text=/low price.*greater|min price.*lower|invalid range/i').isVisible({ timeout: 1000 }).catch(() => false);
+      if (stillError) {
+        console.log('   ⚠️ Price range error STILL present after fix attempt');
+        await page.screenshot({ path: 'tests/screenshots/ui-liquidity-3b-error.png', fullPage: true });
+      } else {
+        console.log('   ✅ Price range error resolved');
+      }
+    } else {
+      console.log('   ✅ No price range errors');
     }
     
     await page.waitForTimeout(1000);
     
-    // Enter amounts
+    // Enter deposit amounts - IMPORTANT: Skip the price range inputs!
     console.log('\n📍 STEP 6: Enter liquidity amounts');
-    const amountInputs = await page.locator('input[type="number"], input[inputmode="decimal"], input[placeholder*="0"]').all();
-    console.log(`   Found ${amountInputs.length} amount inputs`);
     
-    if (amountInputs.length >= 1) {
-      await amountInputs[0].click();
-      await amountInputs[0].fill(DEX_CONFIG.pool.amount0);
-      console.log(`   ✅ Entered ${DEX_CONFIG.pool.amount0} ${DEX_CONFIG.pool.token0}`);
+    // Scroll down to see deposit amount section
+    await page.evaluate(() => window.scrollBy(0, 400));
+    await page.waitForTimeout(1000);
+    
+    // The deposit section has inputs labeled "Deposit Amounts" or similar
+    // Price inputs are labeled "Low price" and "High price" - skip those!
+    
+    // Find all inputs on page
+    const allInputs = await page.locator('input[type="number"], input[inputmode="decimal"]').all();
+    console.log(`   Found ${allInputs.length} total inputs`);
+    
+    // Log all inputs to understand the layout
+    for (let i = 0; i < allInputs.length; i++) {
+      const value = await allInputs[i].inputValue().catch(() => '');
+      const placeholder = await allInputs[i].getAttribute('placeholder').catch(() => '');
+      console.log(`   Input ${i}: value="${value}", placeholder="${placeholder}"`);
     }
     
-    if (amountInputs.length >= 2) {
-      await amountInputs[1].click();
-      await amountInputs[1].fill(DEX_CONFIG.pool.amount1);
-      console.log(`   ✅ Entered ${DEX_CONFIG.pool.amount1} ${DEX_CONFIG.pool.token1}`);
+    // Look for the deposit amount section - it usually comes AFTER price range
+    // The deposit inputs typically have placeholder "0" or "0.0" and are empty
+    // Skip the first 2 inputs which are Low price / High price
+    
+    // Method 1: Try to find inputs in the "Deposit Amounts" section specifically
+    let depositAmount0Input = null;
+    let depositAmount1Input = null;
+    
+    // Look for section with "Deposit" text
+    const depositSection = page.locator('text=/deposit|amount/i').first();
+    if (await depositSection.isVisible({ timeout: 2000 }).catch(() => false)) {
+      console.log('   Found deposit section');
     }
+    
+    // The deposit inputs are typically the 3rd and 4th inputs (after Low/High price)
+    // Or we can look for inputs near token symbols
+    if (allInputs.length >= 4) {
+      // Skip first 2 (price range), use 3rd and 4th (deposit amounts)
+      depositAmount0Input = allInputs[2];
+      depositAmount1Input = allInputs[3];
+      console.log('   Using inputs 2 and 3 for deposit amounts');
+    } else if (allInputs.length >= 2) {
+      // If only 2 inputs visible, might need to scroll more
+      depositAmount0Input = allInputs[0];
+      depositAmount1Input = allInputs[1];
+      console.log('   Only 2 inputs found, using those');
+    }
+    
+    // Enter amounts - use keyboard typing for better reliability
+    if (depositAmount0Input) {
+      await depositAmount0Input.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(500);
+      
+      // Click to focus
+      await depositAmount0Input.click();
+      await page.waitForTimeout(300);
+      
+      // Clear existing content
+      await page.keyboard.press('Control+a');
+      await page.keyboard.press('Backspace');
+      await page.waitForTimeout(200);
+      
+      // Type the amount
+      await page.keyboard.type(DEX_CONFIG.pool.amount0);
+      await page.waitForTimeout(500);
+      
+      // Verify the value
+      const value0 = await depositAmount0Input.inputValue().catch(() => '');
+      console.log(`   ✅ Entered ${DEX_CONFIG.pool.amount0} for first token (value: ${value0})`);
+    }
+    
+    await page.waitForTimeout(1000);
+    
+    if (depositAmount1Input) {
+      await depositAmount1Input.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(500);
+      
+      // Click to focus
+      await depositAmount1Input.click();
+      await page.waitForTimeout(300);
+      
+      // Clear existing content
+      await page.keyboard.press('Control+a');
+      await page.keyboard.press('Backspace');
+      await page.waitForTimeout(200);
+      
+      // Type the amount
+      await page.keyboard.type(DEX_CONFIG.pool.amount1);
+      await page.waitForTimeout(500);
+      
+      // Verify the value
+      const value1 = await depositAmount1Input.inputValue().catch(() => '');
+      console.log(`   ✅ Entered ${DEX_CONFIG.pool.amount1} for second token (value: ${value1})`);
+    }
+    
+    // Click elsewhere to trigger validation
+    await page.locator('body').click({ position: { x: 10, y: 10 } });
+    await page.waitForTimeout(1000);
     
     await page.waitForTimeout(2000);
     await page.screenshot({ path: 'tests/screenshots/ui-liquidity-4-amounts.png', fullPage: true });
+    
+    // Check for any validation errors after entering amounts
+    const amountError = await page.locator('text=/insufficient|not enough|invalid/i').isVisible({ timeout: 1000 }).catch(() => false);
+    if (amountError) {
+      console.log('   ⚠️ Amount validation error detected');
+    }
     
     // Submit transaction
     console.log('\n📍 STEP 7: Submit transaction');

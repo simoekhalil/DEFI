@@ -84,7 +84,9 @@
     "test:dex:comprehensive": "playwright test tests/gala-dex-qa-comprehensive.spec.ts --headed --timeout=300000",
     "test:dex:sdk": "playwright test tests/dex-liquidity-sdk-direct.spec.ts tests/dex-liquidity-sdk-e2e.spec.ts --timeout=60000",
     "test:dex:sdk:e2e": "playwright test tests/dex-liquidity-sdk-e2e.spec.ts --timeout=60000",
-    "test:dex:e2e:browser": "playwright test tests/dex-liquidity-pool-creation-e2e.spec.ts --headed --timeout=300000"
+    "test:dex:e2e:browser": "playwright test tests/dex-liquidity-pool-creation-e2e.spec.ts --headed --timeout=300000",
+    "test:dex:ui:liquidity": "playwright test tests/dex-ui-transactions-e2e.spec.ts --headed --timeout=300000 --grep 'Add Liquidity'",
+    "test:dex:ui:swap": "playwright test tests/dex-ui-transactions-e2e.spec.ts --headed --timeout=300000 --grep 'Swap'"
   },
   "dependencies": {
     "@gala-chain/launchpad-sdk": "^5.0.4-beta.18",

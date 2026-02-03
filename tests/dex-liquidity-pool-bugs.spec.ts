@@ -21,14 +21,31 @@ const DEX_CONFIG = {
   baseUrl: 'https://dex-frontend-test1.defi.gala.com',
   addLiquidityUrl: '/dex/pool/add-liquidity',
   timeout: 60000,
-  // Token pairs to test
+  // Token pairs to test - comprehensive list
   testPairs: [
-    { token0: 'GALA', token1: 'GWETH', description: 'GALA/GWETH (bug reported)' },
-    { token0: 'GALA', token1: 'GUSDC', description: 'GALA/GUSDC (baseline)' },
-    { token0: 'GALA', token1: 'GWBTC', description: 'GALA/GWBTC' },
+    // Primary bug report pair
+    { token0: 'GALA', token1: 'GWETH', description: 'GALA/GWETH (bug reported)', smallAmount: '0.00020' },
+    // Stable pairs
+    { token0: 'GALA', token1: 'GUSDC', description: 'GALA/GUSDC (baseline stable)', smallAmount: '0.01' },
+    { token0: 'GALA', token1: 'GUSDT', description: 'GALA/GUSDT (stable)', smallAmount: '0.01' },
+    // High-value pairs
+    { token0: 'GALA', token1: 'GWBTC', description: 'GALA/GWBTC (high-value)', smallAmount: '0.000001' },
+    // Wrapped pairs
+    { token0: 'GWETH', token1: 'GUSDC', description: 'GWETH/GUSDC', smallAmount: '0.001' },
+    { token0: 'GWBTC', token1: 'GUSDC', description: 'GWBTC/GUSDC', smallAmount: '0.0001' },
+    // Cross-wrapped pairs
+    { token0: 'GWETH', token1: 'GWBTC', description: 'GWETH/GWBTC', smallAmount: '0.001' },
   ],
   feeTiers: ['0.05%', '0.30%', '1.00%'],
   smallAmounts: ['0.00020', '0.0001', '0.00001'],
+  // Token-specific small amounts for realistic testing
+  tokenSmallAmounts: {
+    'GALA': '100',
+    'GWETH': '0.0002',
+    'GWBTC': '0.000001',
+    'GUSDC': '0.01',
+    'GUSDT': '0.01',
+  },
 };
 
 // Helper to dismiss privacy modal - must wait and click with force
@@ -202,33 +219,18 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
       });
       
       await dismissPrivacyModal(page);
-      await page.waitForTimeout(2000);
       
       // Select GALA/GWETH pair
       const token0Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token0Dropdown.isVisible({ timeout: 5000 })) {
         await token0Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GALA');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GALA').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GALA');
       }
       
       const token1Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token1Dropdown.isVisible({ timeout: 5000 })) {
         await token1Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GWETH');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GWETH').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GWETH');
       }
       
       const marketPrices: { [tier: string]: string } = {};
@@ -332,33 +334,18 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
       });
       
       await dismissPrivacyModal(page);
-      await page.waitForTimeout(2000);
       
       // Select token pair first
       const token0Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token0Dropdown.isVisible({ timeout: 5000 })) {
         await token0Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GALA');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GALA').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GALA');
       }
       
       const token1Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token1Dropdown.isVisible({ timeout: 5000 })) {
         await token1Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GWETH');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GWETH').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GWETH');
       }
       
       // Click each fee tier and verify it updates
@@ -395,33 +382,18 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
       });
       
       await dismissPrivacyModal(page);
-      await page.waitForTimeout(2000);
       
       // Select GALA/GWETH pair
       const token0Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token0Dropdown.isVisible({ timeout: 5000 })) {
         await token0Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GALA');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GALA').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GALA');
       }
       
       const token1Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token1Dropdown.isVisible({ timeout: 5000 })) {
         await token1Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GWETH');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GWETH').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GWETH');
       }
       
       // Select 0.05% fee tier
@@ -492,33 +464,18 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
       });
       
       await dismissPrivacyModal(page);
-      await page.waitForTimeout(2000);
       
       // Select GALA/GWETH pair
       const token0Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token0Dropdown.isVisible({ timeout: 5000 })) {
         await token0Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GALA');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GALA').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GALA');
       }
       
       const token1Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token1Dropdown.isVisible({ timeout: 5000 })) {
         await token1Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GWETH');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GWETH').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GWETH');
       }
       
       // Select 0.05% fee tier
@@ -613,28 +570,18 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
       });
       
       await dismissPrivacyModal(page);
-      await page.waitForTimeout(2000);
       
       // Quick setup - select GALA/GWETH 0.05%
-      const tokenDropdowns = await page.locator('button:has-text("Select token")').all();
+      const token0Dropdown = page.locator('button:has-text("Select token")').first();
+      if (await token0Dropdown.isVisible({ timeout: 5000 })) {
+        await token0Dropdown.click();
+        await selectToken(page, 'GALA');
+      }
       
-      if (tokenDropdowns.length >= 2) {
-        // Select GALA
-        await tokenDropdowns[0].click();
-        await page.waitForTimeout(500);
-        await page.locator('text=GALA').first().click();
-        await page.waitForTimeout(1000);
-        
-        // Select GWETH
-        await page.locator('button:has-text("Select token")').first().click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GWETH');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GWETH').first().click();
-        await page.waitForTimeout(1000);
+      const token1Dropdown = page.locator('button:has-text("Select token")').first();
+      if (await token1Dropdown.isVisible({ timeout: 5000 })) {
+        await token1Dropdown.click();
+        await selectToken(page, 'GWETH');
       }
       
       // Select 0.05% fee tier
@@ -705,29 +652,19 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
       });
       
       await dismissPrivacyModal(page);
-      await page.waitForTimeout(2000);
       
       // Select GALA first
       const token0Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token0Dropdown.isVisible({ timeout: 5000 })) {
         await token0Dropdown.click();
-        await page.waitForTimeout(500);
-        await page.locator('text=GALA').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GALA');
       }
       
       // Select GWETH second
       const token1Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token1Dropdown.isVisible({ timeout: 5000 })) {
         await token1Dropdown.click();
-        await page.waitForTimeout(500);
-        const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-        if (await searchInput.isVisible({ timeout: 2000 })) {
-          await searchInput.fill('GWETH');
-          await page.waitForTimeout(500);
-        }
-        await page.locator('text=GWETH').first().click();
-        await page.waitForTimeout(1000);
+        await selectToken(page, 'GWETH');
       }
       
       // Select 0.05% fee tier
@@ -813,22 +750,13 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
         const token0Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token0Dropdown.isVisible({ timeout: 5000 })) {
           await token0Dropdown.click();
-          await page.waitForTimeout(500);
-          await page.locator(`text=${pair.token0}`).first().click();
-          await page.waitForTimeout(1000);
+          await selectToken(page, pair.token0);
         }
         
         const token1Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token1Dropdown.isVisible({ timeout: 5000 })) {
           await token1Dropdown.click();
-          await page.waitForTimeout(500);
-          const searchInput = page.locator('input[placeholder*="Search"], input[type="text"]').first();
-          if (await searchInput.isVisible({ timeout: 2000 })) {
-            await searchInput.fill(pair.token1);
-            await page.waitForTimeout(500);
-          }
-          await page.locator(`text=${pair.token1}`).first().click();
-          await page.waitForTimeout(1000);
+          await selectToken(page, pair.token1);
         }
         
         // Select 0.05% fee tier
@@ -898,5 +826,294 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
         }
       }
     });
+  });
+  
+  test.describe('All Token Pairs - Comprehensive Bug Scan', () => {
+    
+    // Test each token pair across all fee tiers
+    for (const pair of DEX_CONFIG.testPairs) {
+      test(`${pair.description} - Market Price & Fee Tier Validation`, async ({ page }) => {
+        console.log(`\n=== TEST: ${pair.description} ===`);
+        
+        const issues: string[] = [];
+        const feeTierResults: { tier: string, price: string, label: string }[] = [];
+        
+        await page.goto(`${DEX_CONFIG.baseUrl}${DEX_CONFIG.addLiquidityUrl}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: DEX_CONFIG.timeout
+        });
+        
+        await dismissPrivacyModal(page);
+        
+        // Select first token
+        console.log(`Selecting ${pair.token0}...`);
+        const token0Dropdown = page.locator('button:has-text("Select token")').first();
+        if (await token0Dropdown.isVisible({ timeout: 5000 })) {
+          await token0Dropdown.click();
+          await selectToken(page, pair.token0);
+        }
+        
+        // Select second token
+        console.log(`Selecting ${pair.token1}...`);
+        const token1Dropdown = page.locator('button:has-text("Select token")').first();
+        if (await token1Dropdown.isVisible({ timeout: 5000 })) {
+          await token1Dropdown.click();
+          await selectToken(page, pair.token1);
+        }
+        
+        // Test each fee tier
+        for (const tier of DEX_CONFIG.feeTiers) {
+          console.log(`  Testing ${tier} fee tier...`);
+          
+          const tierBtn = page.locator(`text=${tier}`).first();
+          if (await tierBtn.isVisible({ timeout: 3000 })) {
+            await tierBtn.click();
+            await page.waitForTimeout(2000);
+            
+            // Get page data
+            const pageData = await page.evaluate((expectedTier) => {
+              const text = document.body.innerText;
+              const priceMatch = text.match(/(?:market|current|pool)\s*price[:\s]*([0-9.e\-+]+)/i);
+              
+              // Check selected fee tier label
+              const selectedFee = document.querySelector('[class*="selected"], [class*="active"]');
+              const feeLabel = selectedFee?.textContent || '';
+              
+              // Check for "0.00%" bug
+              const has000 = text.includes('0.00%');
+              
+              return {
+                marketPrice: priceMatch ? priceMatch[1] : 'not found',
+                feeLabel: feeLabel,
+                has000Bug: has000 && expectedTier === '0.05%'
+              };
+            }, tier);
+            
+            feeTierResults.push({
+              tier: tier,
+              price: pageData.marketPrice,
+              label: pageData.feeLabel
+            });
+            
+            // Check for bugs
+            if (isExtremelySmallScientificNotation(pageData.marketPrice)) {
+              issues.push(`${tier}: Extremely small market price (${pageData.marketPrice})`);
+            }
+            
+            if (pageData.has000Bug) {
+              issues.push(`${tier}: Fee label showing 0.00% instead of ${tier}`);
+            }
+            
+            console.log(`    Market price: ${pageData.marketPrice}`);
+          }
+        }
+        
+        await page.screenshot({ 
+          path: `tests/screenshots/pair-scan-${pair.token0}-${pair.token1}.png`, 
+          fullPage: true 
+        });
+        
+        // Report results
+        console.log(`\n  Results for ${pair.token0}/${pair.token1}:`);
+        console.log('  | Fee Tier | Market Price |');
+        console.log('  |----------|--------------|');
+        for (const result of feeTierResults) {
+          console.log(`  | ${result.tier} | ${result.price} |`);
+        }
+        
+        if (issues.length > 0) {
+          console.log('\n  ❌ ISSUES FOUND:');
+          issues.forEach(issue => console.log(`    - ${issue}`));
+        } else {
+          console.log('\n  ✅ No issues detected');
+        }
+        
+        // Soft assertion - log but don't fail
+        if (issues.length > 0) {
+          console.warn(`BUGS DETECTED for ${pair.description}: ${issues.join('; ')}`);
+        }
+      });
+      
+      test(`${pair.description} - Small Amount Calculation`, async ({ page }) => {
+        console.log(`\n=== TEST: ${pair.description} - Small Amount Calculation ===`);
+        
+        await page.goto(`${DEX_CONFIG.baseUrl}${DEX_CONFIG.addLiquidityUrl}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: DEX_CONFIG.timeout
+        });
+        
+        await dismissPrivacyModal(page);
+        
+        // Select tokens
+        const token0Dropdown = page.locator('button:has-text("Select token")').first();
+        if (await token0Dropdown.isVisible({ timeout: 5000 })) {
+          await token0Dropdown.click();
+          await selectToken(page, pair.token0);
+        }
+        
+        const token1Dropdown = page.locator('button:has-text("Select token")').first();
+        if (await token1Dropdown.isVisible({ timeout: 5000 })) {
+          await token1Dropdown.click();
+          await selectToken(page, pair.token1);
+        }
+        
+        // Select 0.05% fee tier (bug reported)
+        await page.locator('text=0.05%').first().click();
+        await page.waitForTimeout(2000);
+        
+        // Scroll to deposit section
+        await page.evaluate(() => window.scrollBy(0, 500));
+        await page.waitForTimeout(1000);
+        
+        // Find amount inputs
+        const amountInputs = await page.locator('input[inputmode="decimal"], input[type="number"]').all();
+        
+        if (amountInputs.length >= 2) {
+          // Enter small amount for second token
+          const smallAmount = pair.smallAmount || '0.0001';
+          console.log(`Entering ${smallAmount} ${pair.token1}...`);
+          
+          // Find the right input (skip price range inputs, use deposit inputs)
+          for (let i = Math.min(3, amountInputs.length - 1); i < amountInputs.length; i++) {
+            const input = amountInputs[i];
+            if (await input.isVisible()) {
+              await input.click();
+              await input.fill(smallAmount);
+              await page.waitForTimeout(2000);
+              break;
+            }
+          }
+          
+          // Check calculated counterpart
+          const allValues = await page.evaluate(() => {
+            const values: string[] = [];
+            document.querySelectorAll('input').forEach(input => {
+              const val = (input as HTMLInputElement).value;
+              if (val && val !== '0' && val !== '') {
+                values.push(val);
+              }
+            });
+            return values;
+          });
+          
+          console.log(`Calculated values: ${allValues.join(', ')}`);
+          
+          // Check for unrealistic calculations
+          for (const val of allValues) {
+            if (isUnrealisticallyLarge(val, 1e12)) {
+              console.log(`❌ BUG: Unrealistically large value: ${val}`);
+            }
+            if (isExtremelySmallScientificNotation(val)) {
+              console.log(`❌ BUG: Extremely small scientific notation: ${val}`);
+            }
+          }
+        }
+        
+        await page.screenshot({ 
+          path: `tests/screenshots/pair-amount-${pair.token0}-${pair.token1}.png`, 
+          fullPage: true 
+        });
+      });
+    }
+  });
+  
+  test.describe('Edge Case Token Amounts', () => {
+    
+    const edgeCaseAmounts = [
+      { amount: '0.000000001', description: 'Very small (9 decimals)' },
+      { amount: '0.00000000001', description: 'Extremely small (11 decimals)' },
+      { amount: '1', description: 'Whole number' },
+      { amount: '0.123456789012345678', description: 'Max precision (18 decimals)' },
+      { amount: '1000000', description: 'Large amount' },
+    ];
+    
+    for (const edgeCase of edgeCaseAmounts) {
+      test(`GALA/GWETH with ${edgeCase.description}: ${edgeCase.amount}`, async ({ page }) => {
+        console.log(`\n=== TEST: Edge Case - ${edgeCase.description} ===`);
+        
+        await page.goto(`${DEX_CONFIG.baseUrl}${DEX_CONFIG.addLiquidityUrl}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: DEX_CONFIG.timeout
+        });
+        
+        await dismissPrivacyModal(page);
+        
+        // Quick token selection
+        const token0Dropdown = page.locator('button:has-text("Select token")').first();
+        if (await token0Dropdown.isVisible({ timeout: 5000 })) {
+          await token0Dropdown.click();
+          await selectToken(page, 'GALA');
+        }
+        
+        const token1Dropdown = page.locator('button:has-text("Select token")').first();
+        if (await token1Dropdown.isVisible({ timeout: 5000 })) {
+          await token1Dropdown.click();
+          await selectToken(page, 'GWETH');
+        }
+        
+        // Select 0.05% fee tier
+        await page.locator('text=0.05%').first().click();
+        await page.waitForTimeout(2000);
+        
+        // Scroll and find input
+        await page.evaluate(() => window.scrollBy(0, 500));
+        await page.waitForTimeout(500);
+        
+        const amountInputs = await page.locator('input[inputmode="decimal"], input[type="number"]').all();
+        
+        if (amountInputs.length > 0) {
+          // Use last visible input (likely deposit amount)
+          for (let i = amountInputs.length - 1; i >= 0; i--) {
+            const input = amountInputs[i];
+            if (await input.isVisible()) {
+              await input.click();
+              await input.fill(edgeCase.amount);
+              await page.waitForTimeout(2000);
+              break;
+            }
+          }
+        }
+        
+        // Check for errors or warnings
+        const pageState = await page.evaluate(() => {
+          const errors: string[] = [];
+          const warnings: string[] = [];
+          
+          // Find error/warning elements
+          document.querySelectorAll('[class*="error"], [class*="warning"], [class*="invalid"]').forEach(el => {
+            const text = el.textContent?.trim() || '';
+            if (text.length > 0 && text.length < 200) {
+              if (el.className.includes('error') || el.className.includes('invalid')) {
+                errors.push(text);
+              } else {
+                warnings.push(text);
+              }
+            }
+          });
+          
+          // Get all input values
+          const inputValues: string[] = [];
+          document.querySelectorAll('input').forEach(input => {
+            const val = (input as HTMLInputElement).value;
+            if (val) inputValues.push(val);
+          });
+          
+          return { errors, warnings, inputValues };
+        });
+        
+        console.log(`Input values: ${pageState.inputValues.join(', ')}`);
+        if (pageState.errors.length > 0) {
+          console.log(`Errors: ${pageState.errors.join('; ')}`);
+        }
+        if (pageState.warnings.length > 0) {
+          console.log(`Warnings: ${pageState.warnings.join('; ')}`);
+        }
+        
+        await page.screenshot({ 
+          path: `tests/screenshots/edge-case-${edgeCase.description.replace(/[^a-z0-9]/gi, '-')}.png`, 
+          fullPage: true 
+        });
+      });
+    }
   });
 });

@@ -48,33 +48,67 @@ const DEX_CONFIG = {
   },
 };
 
-// Helper to dismiss privacy modal - must wait and click with force
-async function dismissPrivacyModal(page: any) {
-  await page.waitForTimeout(2000);
+// Helper to dismiss ALL modals (privacy, success, etc.)
+async function dismissAllModals(page: any) {
+  await page.waitForTimeout(1000);
   
+  // Dismiss privacy modal
   try {
-    // Check for privacy settings text
-    const privacyVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 2000 }).catch(() => false);
-    
+    const privacyVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 1500 }).catch(() => false);
     if (privacyVisible) {
       console.log('   Privacy modal detected, clicking Accept All...');
       const acceptBtn = page.locator('button:has-text("Accept All")').first();
-      if (await acceptBtn.isVisible({ timeout: 3000 })) {
+      if (await acceptBtn.isVisible({ timeout: 2000 })) {
         await acceptBtn.click({ force: true });
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(1500);
         console.log('   Privacy modal dismissed');
       }
     }
-  } catch (e) {
-    // Modal not present
-  }
+  } catch (e) {}
   
-  // Double check and dismiss any lingering modals
-  await page.waitForTimeout(500);
+  // Dismiss success modals (swapSuccessModal, etc.)
+  try {
+    const successModal = page.locator('[class*="SuccessModal"], [class*="success-modal"], .modal.show').first();
+    if (await successModal.isVisible({ timeout: 1000 }).catch(() => false)) {
+      console.log('   Success modal detected, closing...');
+      // Try close button first
+      const closeBtn = page.locator('[class*="SuccessModal"] button:has-text("Close"), [class*="SuccessModal"] .close, .modal.show .btn-close, .modal.show button:has-text("Close"), .modal.show button:has-text("Done")').first();
+      if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await closeBtn.click({ force: true });
+        await page.waitForTimeout(1000);
+        console.log('   Success modal closed via button');
+      } else {
+        // Try clicking backdrop or pressing Escape
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+        console.log('   Success modal closed via Escape');
+      }
+    }
+  } catch (e) {}
+  
+  // Dismiss any generic modal overlay
+  try {
+    const modalBackdrop = page.locator('.modal-backdrop, [class*="overlay"]').first();
+    if (await modalBackdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
+  } catch (e) {}
+  
+  // Final cleanup - click away from any remaining modals
+  await page.waitForTimeout(300);
+}
+
+// Alias for backward compatibility
+async function dismissPrivacyModal(page: any) {
+  await dismissAllModals(page);
 }
 
 // Helper to select a token from the dropdown modal
 async function selectToken(page: any, tokenSymbol: string) {
+  // Dismiss any blocking modals first
+  await dismissAllModals(page);
+  
   // Wait for token modal to be visible
   await page.waitForTimeout(1000);
   
@@ -281,8 +315,9 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
         timeout: DEX_CONFIG.timeout
       });
       
-      await dismissPrivacyModal(page);
+      await dismissAllModals(page);
       await page.waitForTimeout(2000);
+      await dismissAllModals(page);
       
       // Check all fee tier labels
       const feeTierLabels = await page.evaluate(() => {
@@ -333,15 +368,17 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
         timeout: DEX_CONFIG.timeout
       });
       
-      await dismissPrivacyModal(page);
+      await dismissAllModals(page);
       
       // Select token pair first
+      await dismissAllModals(page);
       const token0Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token0Dropdown.isVisible({ timeout: 5000 })) {
-        await token0Dropdown.click();
+        await token0Dropdown.click({ force: true });
         await selectToken(page, 'GALA');
       }
       
+      await dismissAllModals(page);
       const token1Dropdown = page.locator('button:has-text("Select token")').first();
       if (await token1Dropdown.isVisible({ timeout: 5000 })) {
         await token1Dropdown.click();
@@ -843,31 +880,34 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
           timeout: DEX_CONFIG.timeout
         });
         
-        await dismissPrivacyModal(page);
+        await dismissAllModals(page);
         
         // Select first token
         console.log(`Selecting ${pair.token0}...`);
+        await dismissAllModals(page);
         const token0Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token0Dropdown.isVisible({ timeout: 5000 })) {
-          await token0Dropdown.click();
+          await token0Dropdown.click({ force: true });
           await selectToken(page, pair.token0);
         }
         
         // Select second token
         console.log(`Selecting ${pair.token1}...`);
+        await dismissAllModals(page);
         const token1Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token1Dropdown.isVisible({ timeout: 5000 })) {
-          await token1Dropdown.click();
+          await token1Dropdown.click({ force: true });
           await selectToken(page, pair.token1);
         }
         
         // Test each fee tier
         for (const tier of DEX_CONFIG.feeTiers) {
           console.log(`  Testing ${tier} fee tier...`);
+          await dismissAllModals(page);
           
           const tierBtn = page.locator(`text=${tier}`).first();
           if (await tierBtn.isVisible({ timeout: 3000 })) {
-            await tierBtn.click();
+            await tierBtn.click({ force: true });
             await page.waitForTimeout(2000);
             
             // Get page data
@@ -942,23 +982,26 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
           timeout: DEX_CONFIG.timeout
         });
         
-        await dismissPrivacyModal(page);
+        await dismissAllModals(page);
         
         // Select tokens
+        await dismissAllModals(page);
         const token0Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token0Dropdown.isVisible({ timeout: 5000 })) {
-          await token0Dropdown.click();
+          await token0Dropdown.click({ force: true });
           await selectToken(page, pair.token0);
         }
         
+        await dismissAllModals(page);
         const token1Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token1Dropdown.isVisible({ timeout: 5000 })) {
-          await token1Dropdown.click();
+          await token1Dropdown.click({ force: true });
           await selectToken(page, pair.token1);
         }
         
         // Select 0.05% fee tier (bug reported)
-        await page.locator('text=0.05%').first().click();
+        await dismissAllModals(page);
+        await page.locator('text=0.05%').first().click({ force: true });
         await page.waitForTimeout(2000);
         
         // Scroll to deposit section
@@ -1036,23 +1079,26 @@ test.describe('DEX Liquidity Pool Bug Detection', () => {
           timeout: DEX_CONFIG.timeout
         });
         
-        await dismissPrivacyModal(page);
+        await dismissAllModals(page);
         
         // Quick token selection
+        await dismissAllModals(page);
         const token0Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token0Dropdown.isVisible({ timeout: 5000 })) {
-          await token0Dropdown.click();
+          await token0Dropdown.click({ force: true });
           await selectToken(page, 'GALA');
         }
         
+        await dismissAllModals(page);
         const token1Dropdown = page.locator('button:has-text("Select token")').first();
         if (await token1Dropdown.isVisible({ timeout: 5000 })) {
-          await token1Dropdown.click();
+          await token1Dropdown.click({ force: true });
           await selectToken(page, 'GWETH');
         }
         
         // Select 0.05% fee tier
-        await page.locator('text=0.05%').first().click();
+        await dismissAllModals(page);
+        await page.locator('text=0.05%').first().click({ force: true });
         await page.waitForTimeout(2000);
         
         // Scroll and find input

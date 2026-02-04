@@ -19,26 +19,63 @@ const DEX_CONFIG = {
   timeout: 60000,
 };
 
-// Helper to dismiss privacy modal
-async function dismissPrivacyModal(page: any) {
-  await page.waitForTimeout(2000);
+// Helper to dismiss ALL modals (privacy, success, etc.)
+async function dismissAllModals(page: any) {
+  await page.waitForTimeout(1000);
+  
+  // Dismiss privacy modal
   try {
-    const privacyVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 2000 }).catch(() => false);
+    const privacyVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 1500 }).catch(() => false);
     if (privacyVisible) {
       console.log('   Privacy modal detected, clicking Accept All...');
       const acceptBtn = page.locator('button:has-text("Accept All")').first();
-      if (await acceptBtn.isVisible({ timeout: 3000 })) {
+      if (await acceptBtn.isVisible({ timeout: 2000 })) {
         await acceptBtn.click({ force: true });
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(1500);
+        console.log('   Privacy modal dismissed');
       }
     }
-  } catch (e) {
-    // Modal not present
-  }
+  } catch (e) {}
+  
+  // Dismiss success modals (swapSuccessModal, etc.)
+  try {
+    const successModal = page.locator('[class*="SuccessModal"], [class*="success-modal"], .modal.show').first();
+    if (await successModal.isVisible({ timeout: 1000 }).catch(() => false)) {
+      console.log('   Success modal detected, closing...');
+      const closeBtn = page.locator('[class*="SuccessModal"] button:has-text("Close"), [class*="SuccessModal"] .close, .modal.show .btn-close, .modal.show button:has-text("Close"), .modal.show button:has-text("Done")').first();
+      if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await closeBtn.click({ force: true });
+        await page.waitForTimeout(1000);
+        console.log('   Success modal closed');
+      } else {
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+      }
+    }
+  } catch (e) {}
+  
+  // Dismiss any generic modal overlay
+  try {
+    const modalBackdrop = page.locator('.modal-backdrop, [class*="overlay"]').first();
+    if (await modalBackdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
+  } catch (e) {}
+  
+  await page.waitForTimeout(300);
+}
+
+// Alias for backward compatibility
+async function dismissPrivacyModal(page: any) {
+  await dismissAllModals(page);
 }
 
 // Helper to navigate to pools listing page
 async function navigateToPoolsListing(page: any) {
+  // Dismiss any modals first
+  await dismissAllModals(page);
+  
   // First try "Explore" tab in main nav (shows pools listing)
   const exploreTab = page.locator('a:has-text("Explore"), [class*="nav"] >> text=Explore').first();
   
@@ -46,6 +83,7 @@ async function navigateToPoolsListing(page: any) {
     await exploreTab.click();
     await page.waitForTimeout(3000);
     console.log('   Clicked Explore tab');
+    await dismissAllModals(page);
     return;
   }
   
@@ -56,6 +94,7 @@ async function navigateToPoolsListing(page: any) {
     await trendingPools.click();
     await page.waitForTimeout(3000);
     console.log('   Clicked Trending Pools');
+    await dismissAllModals(page);
     return;
   }
   
@@ -66,6 +105,7 @@ async function navigateToPoolsListing(page: any) {
     await poolTab.click();
     await page.waitForTimeout(2000);
     console.log('   Clicked Pool tab');
+    await dismissAllModals(page);
     
     // After Pool tab, look for pools listing
     const allPoolsLink = page.locator('a:has-text("All Pools"), a:has-text("Explore Pools"), button:has-text("View All")').first();
@@ -74,6 +114,7 @@ async function navigateToPoolsListing(page: any) {
       await allPoolsLink.click();
       await page.waitForTimeout(2000);
       console.log('   Clicked All Pools/Explore link');
+      await dismissAllModals(page);
     }
   }
 }

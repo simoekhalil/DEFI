@@ -75,6 +75,53 @@ function createIssue(
   return issue;
 }
 
+// Helper to dismiss ALL modals (privacy, success, etc.)
+async function dismissAllModals(page: Page) {
+  await page.waitForTimeout(1000);
+  
+  // Dismiss privacy modal
+  try {
+    const privacyVisible = await page.locator('text=Privacy Settings').isVisible({ timeout: 1500 }).catch(() => false);
+    if (privacyVisible) {
+      console.log('   Privacy modal detected, clicking Accept All...');
+      const acceptBtn = page.locator('button:has-text("Accept All")').first();
+      if (await acceptBtn.isVisible({ timeout: 2000 })) {
+        await acceptBtn.click({ force: true });
+        await page.waitForTimeout(1500);
+        console.log('   Privacy modal dismissed');
+      }
+    }
+  } catch (e) {}
+  
+  // Dismiss success modals (swapSuccessModal, etc.)
+  try {
+    const successModal = page.locator('[class*="SuccessModal"], [class*="success-modal"], .modal.show').first();
+    if (await successModal.isVisible({ timeout: 1000 }).catch(() => false)) {
+      console.log('   Success modal detected, closing...');
+      const closeBtn = page.locator('[class*="SuccessModal"] button:has-text("Close"), [class*="SuccessModal"] .close, .modal.show .btn-close, .modal.show button:has-text("Close"), .modal.show button:has-text("Done")').first();
+      if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await closeBtn.click({ force: true });
+        await page.waitForTimeout(1000);
+        console.log('   Success modal closed');
+      } else {
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+      }
+    }
+  } catch (e) {}
+  
+  // Dismiss any generic modal overlay
+  try {
+    const modalBackdrop = page.locator('.modal-backdrop, [class*="overlay"]').first();
+    if (await modalBackdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
+  } catch (e) {}
+  
+  await page.waitForTimeout(300);
+}
+
 // DEX-specific selectors
 const SELECTORS = {
   // Navigation
@@ -274,9 +321,13 @@ test.describe('Gala DEX Comprehensive QA Testing', () => {
     // Navigate to DEX
     const startTime = Date.now();
     await page.goto('https://lpad-frontend-dev1.defi.gala.com/', {
-      waitUntil: 'networkidle'
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
     });
     const loadTime = Date.now() - startTime;
+    
+    // Dismiss any modals that appear
+    await dismissAllModals(page);
     
     console.log(`   Page load time: ${loadTime}ms`);
     
